@@ -1,7 +1,10 @@
 import React, { useEffect, useRef, useState} from 'react';
 import * as Cesium from 'cesium';
 import { assert } from '../utils/assert.js';
-import get_tiles_url from '../lib/get_tiles.js';
+
+import get_tiles_url_tj from '../lib/get_tiles_tj.js';
+import get_tiles_url_na from '../lib/get_tiles_na.js';
+
 import pollutionPanel from './pollutionPanel.jsx';
 
 Cesium.Ion.defaultAccessToken = import.meta.env.VITE_CESIUM_API;
@@ -84,14 +87,23 @@ const loadBoundaries = async (viewer) => {
 
 async function loadTiles(viewer) {
     assert(viewer?.dataSources && viewer?.scene, "Must be a viewer object with dataSources");
-    const url = await get_tiles_url();
+    const url_tj = await get_tiles_url_tj();
+    const url_na = await get_tiles_url_na();
 
-    console.info(url);
+    console.info(url_tj);
     viewer.imageryLayers.addImageryProvider(
         new Cesium.UrlTemplateImageryProvider({
-            url: url,
+            url: url_tj,
             tilingScheme: new Cesium.WebMercatorTilingScheme(),
-            maximumLevel: 6
+            maximumLevel: 8
+        })
+    );
+
+    viewer.imageryLayers.addImageryProvider(
+        new Cesium.UrlTemplateImageryProvider({
+            url: url_na,
+            tilingScheme: new Cesium.WebMercatorTilingScheme(),
+            maximumLevel: 8
         })
     );
 }
@@ -163,6 +175,8 @@ function addClickHandler(viewer, handler, onClick) {
       const latitude = Cesium.Math.toDegrees(cartographic.latitude);
       const height = cartographic.height;
 
+        console.log(longitude, latitude);
+
       if (onClick) onClick(longitude, latitude);
 
       // Manage the pin on map
@@ -177,16 +191,6 @@ function addClickHandler(viewer, handler, onClick) {
           outlineColor: Cesium.Color.WHITE,
           outlineWidth: 2,
           heightReference: Cesium.HeightReference.CLAMP_TO_GROUND,
-        },
-        label: {
-          text: pin_config.name,
-          font: "24pt monospace",
-          style: Cesium.LabelStyle.FILL_AND_OUTLINE,
-          outlineWidth: 2,
-          verticalOrigin: Cesium.VerticalOrigin.BOTTOM,
-          pixelOffset: new Cesium.Cartesian2(0, -9),
-          fillColor: Cesium.Color.WHITE,
-          outlineColor: Cesium.Color.BLACK,
         },
       });
     } else {

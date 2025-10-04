@@ -25,7 +25,7 @@ function calc_aqi(pollution_data, hours_forward) {
 export default async function(pos) {
     const url = "https://asia-south2-saasbusiness-49fbe.cloudfunctions.net/get_point_data";
     
-    console.info("TRYING TO FETCH METEO DATA");
+    console.info("TRYING TO FETCH METEO DATA ON", typeof pos.lat, typeof pos.lon);
     try {
         const response = await fetch(url, {
             method: "POST",
@@ -33,9 +33,8 @@ export default async function(pos) {
                 "Content-Type": "application/json",
             },
             body: JSON.stringify({
-                "lat": pos.lat,
-                "lon": pos.lon, 
-                "time": "2025-10-01T20:00:00Z", 
+                lat: pos.lat,
+                lon: pos.lat
             })
         });
 
