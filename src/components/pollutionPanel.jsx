@@ -1,23 +1,26 @@
+export default function PollutionPanel({ data }) {
+  if (!data) return null;
 
-/** 
-    * @function
-    * @param {Object} param0 Object with positions with lat lon
-    * @param {*} param0.lat 
-    * @param {*} param0.lon */
-export default function pollutionPanel(data) {
+  const getColor = (aqi) => {
+    if (aqi <= 50) return "#4CAF50";
+    if (aqi <= 100) return "#CDDC39";
+    if (aqi <= 150) return "#FFC107";
+    if (aqi <= 200) return "#FF5722";
+    return "#F44336";
+  };
+
   return (
-    <div>
-      {data.map((hour) => (
-        <div key={hour.time}>
-          <p>{hour.time}</p>
-          <p>{hour.weather.icon} {hour.weather.text}</p>
-          <p>Temp: {hour.temperature}°C</p>
-          <p>Wind: {hour.windspeed} m/s</p>
-          <p>PM2.5: {hour.pm25}</p>
-          <p>NO2: {hour.no2}</p>
-        </div>
-      ))}
+    <div
+      className="pollution-panel"
+      style={{ borderLeftColor: getColor(data.aqi) }}
+    >
+      <h3>💨 Air Quality</h3>
+      <p>
+        <b>AQI:</b> {data.aqi}
+      </p>
+      <p>
+        <b>Status:</b> {data.status}
+      </p>
     </div>
   );
-};
-
+}

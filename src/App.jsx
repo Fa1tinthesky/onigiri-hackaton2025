@@ -1,27 +1,44 @@
-import { useState } from 'react'
-import CesiumMap  from './components/CesiumMap';
-import { useMeteo } from './hooks/useMeteo';
-import get_aqi from './utils/get_aqi';
-import './App.css'
+import { useState } from "react";
+import CesiumMap from "./components/CesiumMap";
+import Layers from "./components/Layers";
+import PollutionPanel from "./components/pollutionPanel";
+import WeatherPanel from "./components/weatherPanel";
+import "./App.css";
+import { useMeteo } from "./hooks/useMeteo";
 
 function App() {
+  const [lat, setLat] = useState(null);
+  const [lon, setLon] = useState(null);
+  const {data, loading, error} = useMeteo(lon, lat)
 
-    get_aqi({
-        lat: -99,
-        lon: 36,
-    });
+  const handleMapClick = (lat, lon) => {
+    
+    setLat(lat);
+    setLon(lon);
 
-    return (
-        <>
-        <div className="div">
-            <CesiumMap />
-                    <div className="top-right">BLA BLA</div>
-                    <div className="top-left">BLA BLA</div>
-                    <div className="bottom-right">BOB bob</div>
-                    <div className="bottom-left">BOb bob</div>
+    console.log(lon, lat, data)
+  };
+
+
+  return (
+    <div className="map-container">
+      <CesiumMap handler={handleMapClick} />
+
+      <div className="floating-panels">
+        <div className="top-right-panel">
+          <Layers />
         </div>
-        </>
-  )
+
+        <div className="bottom-right-panel">
+          <WeatherPanel data={data} />
+        </div>
+
+        <div className="right-panel">
+          <PollutionPanel data={data} />
+        </div>
+      </div>
+    </div>
+  );
 }
 
-export default App
+export default App;
