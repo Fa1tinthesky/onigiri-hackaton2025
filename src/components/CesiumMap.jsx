@@ -117,7 +117,6 @@ function momyHandler(viewer, action_handlers, callback_handlers) {
 
     console.log("Momy was summoned");
     const handler = new Cesium.ScreenSpaceEventHandler(viewer.scene.canvas);
-
     for (let i = 0; i < action_handlers.length; ++i) {
         if (callback_handlers[i]) {
             action_handlers[i](viewer, handler, callback_handlers[i])
