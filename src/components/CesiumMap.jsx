@@ -221,7 +221,7 @@ function addHoverHandler(viewer, handler) {
     }, Cesium.ScreenSpaceEventType.MOUSE_MOVE);
 }
 
-const CesiumViewer = () => {
+const CesiumViewer = ({onMapClick}) => {
     const cesiumContainer = useRef(null);
     const [pin, setPin] = useState(null);
     const eventHandler = useRef(null);
