@@ -1,9 +1,31 @@
 import React, { useEffect, useRef, useState} from 'react';
 import * as Cesium from 'cesium';
 import { assert } from '../utils/assert.js';
-import get_tiles from '../lib/get_tiles.js';
+import get_tiles_url from '../lib/get_tiles.js';
+// import render_aqi_points from '../lib/render_heatmap.js';
 
 Cesium.Ion.defaultAccessToken = import.meta.env.VITE_CESIUM_API;
+
+/**
+    * @param {Cesium.Viewer} viewer 
+    * @param {HTMLCanvasElement} canvas 
+    * @param {Object} bounds*/
+function addHeatmap(viewer, canvas, bounds) {
+    const img = new Image();
+
+    img.onload = () => {
+        const imageryProvider = new Cesium.SingleTileImageryProvider({
+            url: img.src,
+            rectangle: Cesium.Rectangle.fromDegrees(
+                bounds.west, bounds.south, bounds.east, bounds.north
+            ),
+        })
+
+        viewer.imageryLayers.addImageryProvider(imageryProvider);
+    }
+
+    img.src = canvas.toDataURL();
+}
 
 /**
     * @function
@@ -12,30 +34,44 @@ Cesium.Ion.defaultAccessToken = import.meta.env.VITE_CESIUM_API;
     * @returns {Promise<void>} 
     */
 const loadBoundaries = async (viewer) => { 
-    assert(viewer?.dataSources, "Must be a viewer object with dataSources");
+    assert(!!viewer?.dataSources, "Must be a viewer object with dataSources");
 
     try {
-        const geoJsonDataSource = new Cesium.GeoJsonDataSource();
+        const geoJsonSource = new Cesium.GeoJsonDataSource();
+        const geoJsonUrl = 'https://raw.githubusercontent.com/johan/world.geo.json/master/countries.geo.json';
 
-        await viewer.dataSources.add(geoJsonDataSource);
-
-        const geoJsonUrl = '/data/test.geojson';
-
-        geoJsonDataSource
+        geoJsonSource
             .load(geoJsonUrl, {
                 clampToGround: true,
+                stroke: Cesium.Color.RED,    // enable outlines
+                strokeWidth: 2,
+                fill: Cesium.Color.TRANSPARENT
             })
             .then((dataSource) => {
+                viewer.dataSources.add(dataSource);
+
                 dataSource.entities.values.forEach((entity) => {
-                    if (entity.polygon) {
-                        // entity.polygon.material = Cesium.Color.BLUE.withAlpha(1.0);
-                        entity.polygon.material = Cesium.Color.TRANSPARENT;
-                        entity.polygon.outline = true;
-                        entity.polygon.outlineColor = Cesium.Color.RED;
-                        entity.polygon.height = 20;
-                        entity.polygon.outlineWidth = 3;
-                    }
+                    const props = entity.properties;
+
+                    if (props && props.continent && props.continent.getValue() === "North America") { 
+                        if (entity.polygon) {
+                            const positions = entity.polygon.hierarchy.getValue(Cesium.JulianDate.now()).positions;
+                            viewer.entities.add({
+                                polyline: {
+                                    positions: positions,
+                                    clampToGround: true,
+                                    material: Cesium.Color.RED,
+                                    width: 2
+                                }
+                            });
+                            entity.polygon.show = new Cesium.ConstantProperty(false);
+                        } else {
+                            entity.show = false;
+                        }
+                    }               
                 });
+                
+                return geoJsonSource;
             }).catch((e) => {
                 console.log("Error trying obtain outline data", e);
             })        
@@ -48,9 +84,9 @@ const loadBoundaries = async (viewer) => {
 
 async function loadTiles(viewer) {
     assert(viewer?.dataSources && viewer?.scene, "Must be a viewer object with dataSources");
-    const url = await get_tiles();
+    const url = await get_tiles_url();
 
-    console.info(viewer);
+    console.info(url);
     viewer.imageryLayers.addImageryProvider(
         new Cesium.UrlTemplateImageryProvider({
             url: url,
@@ -65,26 +101,41 @@ async function loadTiles(viewer) {
     * @param {Cesium.Viewer} viewer that will be modified
     * @param {Array<Function>} action_handlers - an array of handlers to be binded
     * @throws {AssertionError} When input is not a correct Cesium viewer.
-    * @returns {void}
+    * @returns {Cesium.ScreenSpaceEventHandler};
     * */
-async function momyHandler(viewer, action_handlers) {
-    assert(viewer?.dataSources && viewer?.scene && !viewer.isDestroyed(), "Must be a viewer loaded viewer");
+function momyHandler(viewer, action_handlers) {
+    assert(
+        !!viewer?.dataSources && !!viewer?.scene, 
+        "Must be an existing viewer"
+    );
 
+    console.info("Viewer state:", viewer.isDestroyed());
+    if (!!viewer.isDestroyed()) {
+        console.info("Called upon destroyed viewer");
+        return;
+    }
+
+    console.log("Momy was summoned");
     const handler = new Cesium.ScreenSpaceEventHandler(viewer.scene.canvas);
     
     for (const action_handler of action_handlers) {
             action_handler(viewer, handler);
     }
+
+    return handler;
 }
 
 /**
     * @function This function is not pure.
     * @todo Add requests to the server with lat and lon. Finish doc for handler
     * @param {Cesium.Viewer} viewer that will be modified
+    * @param {Cesium.ScreenSpaceEventHandler} handler
     * @throws {AssertionError} When input is not a correct Cesium viewer.
-    * @returns {Promise<void>} 
+    * @returns {void} 
     * */
 function addClickHandler(viewer, handler) { 
+    assert(!!viewer.scene, "Viewer didn't load properly");
+
     let pin = null;
     const pin_config = {
         name: "pin",
@@ -143,17 +194,19 @@ function addClickHandler(viewer, handler) {
     * @function This function is not pure.
     * @todo Add requests to the server with lat and lon.
     * @param {Cesium.Viewer} viewer that will be modified
+    * @param {Cesium.ScreenSpaceEventHandler} handler
     * @throws {AssertionError} When input is not a correct Cesium viewer.
-    * @returns {Promise<void>} 
+    * @returns {void} 
     * */
 function addHoverHandler(viewer, handler) {
     /** @type {Object} */
     let highlightedEntity = null;
+
+    assert(!!viewer.scene, "Viewer didn't load properly");
     const scene = viewer.scene;
 
     handler.setInputAction(function(movement) {
         const pickedObject = scene.pick(movement.endPosition);
-        console.log(pickedObject);
 
         if (highlightedEntity) {
             highlightedEntity.polygon.material = highlightedEntity.originalMaterial;
@@ -171,18 +224,23 @@ function addHoverHandler(viewer, handler) {
 const CesiumViewer = () => {
     const cesiumContainer = useRef(null);
     const [pin, setPin] = useState(null);
+    const eventHandler = useRef(null);
+    const isInitializing = useRef(false);
+
     const viewer = useRef(null);
     const [isLoading, setIsLoading] = useState(true); 
 
     useEffect(() => {
         const initializeCesium = async () => {
-            if (cesiumContainer.current && !viewer.current) {
+            if (cesiumContainer.current && !viewer.current && !isInitializing.current) {
+                isInitializing.current = true;
                 try {
                     // Better performance
                     // const terrainProvider = new Cesium.EllipsoidTerrainProvider();
                     
+                    console.log("Here at least")
                     const worldTerrain = await Cesium.createWorldTerrainAsync();
-                    Cesium.RequestScheduler.maximumRequestsPerServer = 2;
+                    Cesium.RequestScheduler.maximumRequestsPerServer = 3;
 
                     viewer.current = new Cesium.Viewer(cesiumContainer.current, {
                         terrainProvider: worldTerrain,
@@ -205,8 +263,8 @@ const CesiumViewer = () => {
                     viewer.current.scene.sun = new Cesium.Sun();
                     viewer.current.scene.moon = new Cesium.Moon();
 
-                    // Enable depth testing for better visual quality
-                    viewer.current.scene.globe.depthTestAgainstTerrain = true;
+                    viewer.current.scene.globe.depthTestAgainstTerrain = false;
+                    viewer.current.scene.globe.terrainExaggeration = 1.0;
 
                     // Smooth camera controls
                     viewer.current.cesiumWidget.screenSpaceEventHandler.removeInputAction(Cesium.ScreenSpaceEventType.LEFT_DOUBLE_CLICK);
@@ -214,31 +272,26 @@ const CesiumViewer = () => {
 
                     const entities = [
                         {
-                            name: 'New York City',
-                            position: Cesium.Cartesian3.fromDegrees(-74.006, 40.7128),
-                            color: Cesium.Color.CYAN,
-                        },
-                        {
-                            name: 'London',
-                            position: Cesium.Cartesian3.fromDegrees(-0.1276, 51.5074),
-                            color: Cesium.Color.YELLOW,
-                        },
-                        {
-                            name: 'Tokyo',
-                            position: Cesium.Cartesian3.fromDegrees(139.6917, 35.6895),
-                            color: Cesium.Color.LIME,
-                        },
-                        {
-                            name: "Indonesia",
-                            position: Cesium.Cartesian3.fromDegrees(117.0, 0.0, 50),
-                            color: Cesium.Color.RED,
-                        },
-                        {
                             name: "North America",
                             position: Cesium.Cartesian3.fromDegrees(48.17, -100.17),
                             color: Cesium.Color.RED,
                         },
                     ];
+
+                    /* const northAmericaRectangle = viewer.current?.entities.add({
+                        name: "North America",
+                        rectangle: {
+                            coordinates: Cesium.Rectangle.fromDegrees(
+                                -168.0, // west: slightly west of Alaska
+                                5.0,    // south: slightly south of Panama
+                                -50.0,  // east: slightly east of Greenland
+                                83.0    // north: slightly north of northern Canada
+                            ),                            material: Cesium.Color.RED.withAlpha(0.5), // semi-transparent red
+                            outline: true,
+                            outlineColor: Cesium.Color.WHITE,
+                            outlineWidth: 2,
+                        }
+                    }); */
 
                     entities.forEach(entity => {
                         viewer.current?.entities.add({
@@ -264,8 +317,22 @@ const CesiumViewer = () => {
                         });
                     });
 
+                    // await loadBoundaries(viewer.current);
+                    
+                    // const na_bounds = { west: -130, south: 20, east: -60, north: 50 };
+                    // let heatmap_canvas = await render_aqi_points(viewer.current, na_bounds);
+                    // addHeatmap(viewer.current, heatmap_canvas, na_bounds);
+
+                    console.log("RUNNING URL FETCHING");
+                    await loadTiles(viewer.current);
+                            
+                    eventHandler.current = momyHandler(
+                        viewer.current, 
+                        [addClickHandler, addHoverHandler]
+                    );
 
                     setIsLoading(false);
+                    console.log("CONFIG DONE");
                 } catch (error) {
                     console.error('Error initializing Cesium:', error);
 
@@ -274,35 +341,31 @@ const CesiumViewer = () => {
             }
         };
 
-        initializeCesium().then("CONFIG DONE");
-
+        initializeCesium();
         return () => {
             // For some reason, this cleanup function runs before
             // the viewer is loaded, so I just added a timeout...
-            // TODO: Find normal fix instead
-            setTimeout(() => { 
-                if (viewer.current) {
-                    viewer.current.destroy();
-                    viewer.current = null;
-                }
-            }, 3500);
+                // TODO: Find normal fix instead
 
+            if (eventHandler.current && !eventHandler.current.isDestroyed()) {
+                eventHandler.current.destroy();
+                eventHandler.current = null;
+            }
+
+            if (viewer.current && !viewer.current.isDestroyed()) {
+                viewer.current.destroy();
+                viewer.current = null;
+            }    
+
+            // Cleanup condition, might be used in future to keep memory clean.
+            if (viewer.current && viewer.current.dataSources) {
+                viewer.current.dataSources.remove(Cesium.GeoJsonDataSource, true);
+            }
         };
     }, []); 
 
-    useEffect(() => {
-        if (viewer.current && viewer.current.scene) {
-            loadTiles(viewer.current);
-            loadBoundaries(viewer.current);
-
-            momyHandler(viewer.current, [addClickHandler, addHoverHandler]);
-        }
-    }, [viewer.current]);
-
-
-
   return (
-    <div style={{ position: 'relative', width: '100%', height: '500px' }}>
+    <div style={{ position: 'relative', width: '100%', height: '100vh' }}>
       {isLoading && (
         <div style={{
           position: 'absolute',
