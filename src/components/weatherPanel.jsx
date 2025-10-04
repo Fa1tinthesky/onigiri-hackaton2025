@@ -1,4 +1,5 @@
 
+
 export default function WeatherPanel({ data }) {
   if (!data) return null;
 
@@ -20,3 +21,4 @@ export default function WeatherPanel({ data }) {
     </div>
   );
 }
+
