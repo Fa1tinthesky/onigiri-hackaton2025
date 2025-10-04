@@ -2,7 +2,7 @@ import React, { useEffect, useRef, useState} from 'react';
 import * as Cesium from 'cesium';
 import { assert } from '../utils/assert.js';
 import get_tiles_url from '../lib/get_tiles.js';
-// import render_aqi_points from '../lib/render_heatmap.js';
+import pollutionPanel from './pollutionPanel.jsx';
 
 Cesium.Ion.defaultAccessToken = import.meta.env.VITE_CESIUM_API;
 
@@ -103,7 +103,7 @@ async function loadTiles(viewer) {
     * @throws {AssertionError} When input is not a correct Cesium viewer.
     * @returns {Cesium.ScreenSpaceEventHandler};
     * */
-function momyHandler(viewer, action_handlers) {
+function momyHandler(viewer, action_handlers, callback_handlers) {
     assert(
         !!viewer?.dataSources && !!viewer?.scene, 
         "Must be an existing viewer"
@@ -117,9 +117,13 @@ function momyHandler(viewer, action_handlers) {
 
     console.log("Momy was summoned");
     const handler = new Cesium.ScreenSpaceEventHandler(viewer.scene.canvas);
-    
-    for (const action_handler of action_handlers) {
-            action_handler(viewer, handler);
+
+    for (let i = 0; i < action_handlers.length; ++i) {
+        if (callback_handlers[i]) {
+            action_handlers[i](viewer, handler, callback_handlers[i])
+        } else {
+            action_handlers[i](viewer, handler);
+        }
     }
 
     return handler;
@@ -133,60 +137,63 @@ function momyHandler(viewer, action_handlers) {
     * @throws {AssertionError} When input is not a correct Cesium viewer.
     * @returns {void} 
     * */
-function addClickHandler(viewer, handler) { 
-    assert(!!viewer.scene, "Viewer didn't load properly");
+/**
+ * @function addClickHandler
+ * @param {Cesium.Viewer} viewer - The Cesium viewer instance
+ * @param {Cesium.ScreenSpaceEventHandler} handler - Cesium click handler
+ * @param {(lon: number, lat: number) => void} onClick - Callback invoked when user clicks on map
+ * @throws {AssertionError} When viewer is not valid
+ * @returns {void}
+ */
+function addClickHandler(viewer, handler, onClick) {
+  assert(!!viewer.scene, "Viewer didn't load properly");
 
-    let pin = null;
-    const pin_config = {
-        name: "pin",
-        position: Cesium.Cartesian3.fromDegrees(50.0, 50.0),
-        color: Cesium.Color.RED,                    
+  let pin = null;
+  const pin_config = {
+    name: "pin",
+    color: Cesium.Color.RED,
+  };
+
+  handler.setInputAction(function (movement) {
+    const scene = viewer.scene;
+    const pickedPosition = scene.pickPosition(movement.position);
+
+    if (Cesium.defined(pickedPosition)) {
+      const cartographic = Cesium.Cartographic.fromCartesian(pickedPosition);
+      const longitude = Cesium.Math.toDegrees(cartographic.longitude);
+      const latitude = Cesium.Math.toDegrees(cartographic.latitude);
+      const height = cartographic.height;
+
+      if (onClick) onClick(longitude, latitude);
+
+      // Manage the pin on map
+      if (pin) viewer.entities.remove(pin);
+      pin = viewer.entities.add({
+        name: pin_config.name,
+        position: Cesium.Cartesian3.fromDegrees(longitude, latitude),
+        id: "pin_configId",
+        point: {
+          pixelSize: 8,
+          color: pin_config.color,
+          outlineColor: Cesium.Color.WHITE,
+          outlineWidth: 2,
+          heightReference: Cesium.HeightReference.CLAMP_TO_GROUND,
+        },
+        label: {
+          text: pin_config.name,
+          font: "24pt monospace",
+          style: Cesium.LabelStyle.FILL_AND_OUTLINE,
+          outlineWidth: 2,
+          verticalOrigin: Cesium.VerticalOrigin.BOTTOM,
+          pixelOffset: new Cesium.Cartesian2(0, -9),
+          fillColor: Cesium.Color.WHITE,
+          outlineColor: Cesium.Color.BLACK,
+        },
+      });
+    } else {
+      console.log("No terrain picked");
     }
-
-    handler.setInputAction(function (movement) {
-        const scene = viewer.scene;
-
-        const pickedPosition = scene.pickPosition(movement.position);
-
-        if (Cesium.defined(pickedPosition)) {
-            const carthographic = Cesium.Cartographic.fromCartesian(pickedPosition);
-
-            const longitude = Cesium.Math.toDegrees(carthographic.longitude);
-            const latitude = Cesium.Math.toDegrees(carthographic.latitude);
-            const height = carthographic.height;
-
-            console.log(`Longitude: ${longitude}, Latitude: ${latitude}, height: ${height}`);
-        
-            if (pin) {
-                viewer.entities.remove(pin);
-            }
-
-            pin = viewer.entities.add({
-                name: pin_config.name,
-                position: Cesium.Cartesian3.fromDegrees(longitude, latitude),
-                id: "pin_configId",
-                point: {
-                    pixelSize: 8,
-                    color: pin_config.color,
-                    outlineColor: Cesium.Color.WHITE,
-                    outlineWidth: 2,
-                    heightReference: Cesium.HeightReference.CLAMP_TO_GROUND,
-                },
-                label: {
-                    text: pin_config.name,
-                    font: '24pt monospace',
-                    style: Cesium.LabelStyle.FILL_AND_OUTLINE,
-                    outlineWidth: 2,
-                    verticalOrigin: Cesium.VerticalOrigin.BOTTOM,
-                    pixelOffset: new Cesium.Cartesian2(0, -9),
-                    fillColor: Cesium.Color.WHITE,
-                    outlineColor: Cesium.Color.BLACK,
-                },
-            });
-        } else {
-            console.log("No terrain picked");
-        }
-    }, Cesium.ScreenSpaceEventType.LEFT_CLICK);
+  }, Cesium.ScreenSpaceEventType.LEFT_CLICK);
 }
 
 
@@ -221,7 +228,7 @@ function addHoverHandler(viewer, handler) {
     }, Cesium.ScreenSpaceEventType.MOUSE_MOVE);
 }
 
-const CesiumViewer = () => {
+const CesiumViewer = ({ handler }) => {
     const cesiumContainer = useRef(null);
     const [pin, setPin] = useState(null);
     const eventHandler = useRef(null);
@@ -328,7 +335,8 @@ const CesiumViewer = () => {
                             
                     eventHandler.current = momyHandler(
                         viewer.current, 
-                        [addClickHandler, addHoverHandler]
+                        [addClickHandler, addHoverHandler],
+                        [handler, null]
                     );
 
                     setIsLoading(false);
