@@ -1,0 +1,16 @@
+.layers-panel {
+    padding: 1rem;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  font-size: 14px;
+  top: 1rem;
+}
+
+.layer-checkbox {
+    margin: 0.4rem 0.5rem;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  cursor: pointer;
+}

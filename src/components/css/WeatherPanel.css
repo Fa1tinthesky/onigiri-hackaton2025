@@ -1,0 +1,15 @@
+.weather-panel {
+  display: flex;
+  flex-direction: row;
+  justify-content: space-around;
+
+    background-color: transparent;
+    background: none;
+    backdrop-filter: none;
+  gap: 4px;
+  font-size: 14px;
+}
+.weather-panel h3 {
+  margin: 0 0 4px 0;
+  color: #80d0ff;
+}

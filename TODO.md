@@ -6,7 +6,9 @@
 - Optimizaiton shit.
 - Hide everything when loading.
 - Adjust colors for individuals with color vision deficiencies. 
+
     Use ColorVision Assist, also airnow.gov provides color pallete
+- Talk over: should city borders be in there or not ?
 
 # Further than me
 - Turn on server caching
