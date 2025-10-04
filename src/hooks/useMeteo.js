@@ -1,47 +1,19 @@
 import { useState, useEffect } from "react";
 
-const weatherCodeMap = {
-  0: { text: "Clear", icon: "☀️" },
-  1: { text: "Mainly clear", icon: "🌤" },
-  2: { text: "Partly cloudy", icon: "⛅" },
-  3: { text: "Overcast", icon: "☁️" },
-  45: { text: "Fog", icon: "🌫" },
-  48: { text: "Rime fog", icon: "🌫" },
-  51: { text: "Light drizzle", icon: "🌦" },
-  53: { text: "Moderate drizzle", icon: "🌦" },
-  55: { text: "Dense drizzle", icon: "🌧" },
-  56: { text: "Light freezing drizzle", icon: "🌧❄️" },
-  57: { text: "Dense freezing drizzle", icon: "🌧❄️" },
-  61: { text: "Slight rain", icon: "🌧" },
-  63: { text: "Moderate rain", icon: "🌧" },
-  65: { text: "Heavy rain", icon: "🌧" },
-  66: { text: "Light freezing rain", icon: "🌧❄️" },
-  67: { text: "Heavy freezing rain", icon: "🌧❄️" },
-  71: { text: "Slight snow", icon: "❄️" },
-  73: { text: "Moderate snow", icon: "❄️" },
-  75: { text: "Heavy snow", icon: "❄️" },
-  77: { text: "Snow grains", icon: "❄️" },
-  80: { text: "Slight rain showers", icon: "🌦" },
-  81: { text: "Moderate rain showers", icon: "🌦" },
-  82: { text: "Violent rain showers", icon: "⛈" },
-  85: { text: "Slight snow showers", icon: "❄️" },
-  86: { text: "Heavy snow showers", icon: "❄️" },
-  95: { text: "Thunderstorm", icon: "⛈" },
-  96: { text: "Thunderstorm w/ hail (light)", icon: "⛈" },
-  99: { text: "Thunderstorm w/ hail (heavy)", icon: "⛈" },
-};
-
-export const useMeteo = (lat, lon) => {
+export const useMeteo = ({ lat, lon }) => {
   const [data, setData] = useState([]);
-  const [loading, setLoading] = useState(true);
+  const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
 
   useEffect(() => {
-    if (!lat || !lon) return;
+    if (lat === undefined || lon === undefined) return; // strict check
 
     const fetchData = async () => {
       setLoading(true);
       setError(null);
+
+      const payload = { lat: Number(lat), lon: Number(lon) };
+      console.log("📡 Fetching data with payload:", payload);
 
       try {
         const res = await fetch(
@@ -49,22 +21,28 @@ export const useMeteo = (lat, lon) => {
           {
             method: "POST",
             headers: { "Content-Type": "application/json" },
-            mode: "cors", // <<< this ensures the browser enforces CORS
-            body: JSON.stringify({ lat: 38.5, lon: 68.7 }),
+            mode: "cors",
+            body: JSON.stringify(payload),
           }
         );
 
-        console.log(res)
+       
 
-        const json = await res.json(); // Now this should work!
+        // Always parse JSON, but check status first
+        const json = await res.json();
+        console.log(json)
+        if (!res.ok) {
+          console.error("❌ Backend returned error:", json);
+          throw new Error(json?.error || `HTTP ${res.status}`);
+        }
 
-        // Ensure structure matches your backend response
+        // Validate expected structure
         if (!json?.times || !json?.pollution) {
+          console.error("⚠️ Unexpected response format:", json);
           throw new Error("Invalid response format");
         }
 
-        const times = json.times;
-        const pollution = json.pollution;
+        const { times, pollution } = json;
 
         const hours = times.map((time, i) => ({
           time,
