@@ -9,6 +9,7 @@ lerna-debug.log*
 
 node_modules
 ./public/cesium
+.env
 dist
 dist-ssr
 *.local
