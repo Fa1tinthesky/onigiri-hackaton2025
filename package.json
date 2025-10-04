@@ -4,10 +4,13 @@
   "version": "0.0.0",
   "type": "module",
   "scripts": {
-    "dev": "vite",
-    "build": "vite build",
-    "lint": "eslint .",
-    "preview": "vite preview"
+      "copy-cesium-assets": "cp -r node_modules/cesium/Build/Cesium/Assets public/cesium/Assets && cp -r node_modules/cesium/Build/Cesium/Workers public/cesium/Workers && cp -r node_modules/cesium/Build/Cesium/ThirdParty public/cesium/ThirdParty && cp -r node_modules/cesium/Build/Cesium/Widgets public/cesium/Widgets"
+      "dev": "vite",
+      "build": "vite build",
+      "lint": "eslint .",
+      "preview": "vite preview"
+  }
+}
   },
   "dependencies": {
     "cesium": "^1.133.1",

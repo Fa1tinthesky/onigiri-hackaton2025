@@ -1,29 +1,22 @@
 import { defineConfig } from 'vite'
+import { path } from 'path';
 import react from '@vitejs/plugin-react-swc'
 
-// https://vite.dev/config/
 export default defineConfig({
   plugins: [react()],
-  resolve: {
-    alias: {
-      cesium: resolve(__dirname, "node_modules/cesium/Source"),
-    },
-  },
-  optimizeDeps: {
-    exclude: ["cesium"],
+  define: {
+    CESIUM_BASE_URL: JSON.stringify('/cesium/')
   },
   build: {
     rollupOptions: {
-      output: {
-        manualChunks: {
-          cesium: ["cesium"],
-        },
-      },
-    },
+      external: {
+      }
+    }
   },
+  assetsInclude: ['**/*.gltf', '**/*.glb'],
   server: {
     fs: {
-      allow: ["node_modules/cesium/Build/Cesium"],
-    },
-  },
-});
+      allow: ['..']
+    }
+  }
+})
