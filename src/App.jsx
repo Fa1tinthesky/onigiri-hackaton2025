@@ -14,8 +14,13 @@ function App() {
 
   const [lat, setLat] = useState(null);
   const [lon, setLon] = useState(null);
+
   const {data, loading, error} = useMeteo(lon, lat);
   const {dataTempo, loadingTempo, errorTempo} = useTempo(lon, lat);
+  const [layer, setLayer] = useState({
+    NA: true,
+    TJ: true,
+  });
 
     useEffect(() => {
         if ("geolocation" in navigator) {
@@ -53,21 +58,21 @@ function App() {
 
     console.log(dataTempo);
   const handleMapClick = (lat, lon) => {
-    
     setLat(lat);
     setLon(lon);
 
-    console.log(lon, lat, data)
+    console.log(lon, lat, data);
   };
-
+  const toggleLayer = (key) => {
+    setLayer({ ...layer, [key]: !layer[key] });
+  };
 
   return (
     <div className="map-container">
-      <CesiumMap handler={handleMapClick}/>
-
+      <CesiumMap layer={layer} handler={handleMapClick} />
       <div className="floating-panels">
         <div className="top-right-panel">
-          <Layers />
+          <Layers layers={layer} toggleLayer={toggleLayer} />
         </div>
 
         <div className="bottom-right-panel">

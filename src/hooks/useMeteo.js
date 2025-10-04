@@ -37,34 +37,43 @@ export const useMeteo = (lat, lon) => {
   const [error, seterror] = useState(null);
 
   useEffect(() => {
-    if (!lat || !lon) return;
+    if (lat === undefined || lon === undefined) return; // strict check
 
     const fetchdata = async () => {
       setloading(true);
       seterror(null);
 
+      const payload = { lat: Number(lat), lon: Number(lon) };
+      console.log("📡 Fetching data with payload:", payload);
+
       try {
         const res = await fetch(
           "https://asia-south2-saasbusiness-49fbe.cloudfunctions.net/get_point_data",
           {
-            method: "post",
-            headers: { "content-type": "application/json" },
-            mode: "cors", // <<< this ensures the browser enforces cors
-            body: JSON.stringify({ lat: 38.5, lon: 68.7 }),
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            mode: "cors",
+            body: JSON.stringify(payload),
           }
         );
 
-        console.log(res)
+       
 
-        const json = await res.json(); // now this should work!
-
-        // ensure structure matches your backend response
-        if (!json?.times || !json?.pollution) {
-          throw new error("invalid response format");
+        // Always parse JSON, but check status first
+        const json = await res.json();
+        console.log(json)
+        if (!res.ok) {
+          console.error("❌ Backend returned error:", json);
+          throw new Error(json?.error || `HTTP ${res.status}`);
         }
 
-        const times = json.times;
-        const pollution = json.pollution;
+        // Validate expected structure
+        if (!json?.times || !json?.pollution) {
+          console.error("⚠️ Unexpected response format:", json);
+          throw new Error("Invalid response format");
+        }
+
+        const { times, pollution } = json;
 
         const hours = times.map((time, i) => ({
           time,
