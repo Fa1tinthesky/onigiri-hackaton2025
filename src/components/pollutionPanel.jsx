@@ -1,17 +1,10 @@
-import { useMeteo } from "../hooks/useMeteo";
-import get_aqi from "../utils/get_aqi";
 
 /** 
     * @function
     * @param {Object} param0 Object with positions with lat lon
     * @param {*} param0.lat 
     * @param {*} param0.lon */
-export default function pollutionPanel({ lat, lon }) {
-  const { data, loading, error } = useMeteo(lat, lon);
-
-  if (loading) return <p>Loading...</p>;
-  if (error) return <p>Error fetching data</p>;
-
+export default function pollutionPanel(data) {
   return (
     <div>
       {data.map((hour) => (
