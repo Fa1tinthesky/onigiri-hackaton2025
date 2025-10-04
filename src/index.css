@@ -79,3 +79,7 @@ button:focus-visible {
 .cesium-viewer-bottom {
     display: none;
 }
+
+.cesium-geocoder-input {
+    background-color: red;
+}

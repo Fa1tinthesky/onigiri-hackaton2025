@@ -2,14 +2,15 @@ import { useEffect, useState } from "react";
 import CesiumMap from "./components/CesiumMap";
 import Layers from "./components/Layers";
 import PollutionPanel from "./components/pollutionPanel";
-import WeatherPanel from "./components/weatherPanel";
-import { getUserLocation } from "./components/getUserLocation";
+import WeatherPanel from "./components/WeatherPanel";
+
+// import { getUserLocation } from "./components/getUserLocation";
 import "./App.css";
 import { useMeteo } from "./hooks/useMeteo";
 import useTempo from "./hooks/useTempo";
 
 function App() {
-      const { coords, getCurrent, startWatch, stopWatch, loadingUserLocation, errorUserLocation } = getUserLocation();
+      // const { coords, getCurrent, startWatch, stopWatch, loadingUserLocation, errorUserLocation } = getUserLocation();
   const [userLocation, setUserLocation] = useState(null);
 
   const [lat, setLat] = useState(null);
@@ -17,12 +18,12 @@ function App() {
 
   const {data, loading, error} = useMeteo(lon, lat);
   const {dataTempo, loadingTempo, errorTempo} = useTempo(lon, lat);
-  const [layer, setLayer] = useState({
-    NA: true,
-    TJ: true,
+  const [layers, setLayers] = useState({
+    "North America": true,
+    "Tajikistan": true,
   });
 
-    useEffect(() => {
+    /* useEffect(() => {
         if ("geolocation" in navigator) {
     navigator.geolocation.getCurrentPosition(
       (position) => {
@@ -54,7 +55,7 @@ function App() {
     );        } else {
             console.error("Geolocation is not supported by this browser.");
         }
-    }, []);
+    }, []); */
 
     console.log(dataTempo);
   const handleMapClick = (lat, lon) => {
@@ -63,21 +64,27 @@ function App() {
 
     console.log(lon, lat, data);
   };
+
   const toggleLayer = (key) => {
-    setLayer({ ...layer, [key]: !layer[key] });
+      console.log({ ...layers, [key]: !layers[key] });
+    setLayers({ ...layers, [key]: !layers[key] });
   };
 
   return (
     <div className="map-container">
-      <CesiumMap layer={layer} handler={handleMapClick} />
+      <CesiumMap layers={layers} handler={handleMapClick} />
       <div className="floating-panels">
         <div className="top-right-panel">
-          <Layers layers={layer} toggleLayer={toggleLayer} />
+          <Layers layers={layers} toggleLayer={toggleLayer} />
         </div>
 
-        <div className="bottom-right-panel">
-          <WeatherPanel data={data} />
-        </div>
+        {/* <div className="bottom-right-panel"> */}
+        {/*   <WeatherPanel data={data} /> */}
+        {/* </div> */}
+
+          <div className="bottom-panel">
+              <WeatherPanel data={data}/>
+          </div>
 
         <div className="right-panel">
           <PollutionPanel data={dataTempo} />

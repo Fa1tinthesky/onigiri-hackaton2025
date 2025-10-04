@@ -1,5 +1,5 @@
 #root {
-  max-width: 1280px;
+  max-width: 100vw;
   margin: 0 auto;
   text-align: center;
 }
@@ -10,7 +10,7 @@
     background: transparent;
     position: relative;
     height: 100vh;
-    width: 100%;
+    width: 100vw;
     border: #61dafbaa 2px solid;
 }
 
@@ -79,13 +79,15 @@
 
 .map-container {
   position: relative;
+  top: 0;
+  left: 0;
   height: 100vh;
-  width: 100%;
+  width: 100vw;
 }
 
 .floating-panels > div {
   position: absolute;
-  background: rgba(20, 20, 30, 0.75);
+  background: rgba(20, 30, 30, 0.75);
   color: #fff;
   backdrop-filter: blur(10px);
   border-radius: 12px;
@@ -95,7 +97,7 @@
 }
 
 .top-right-panel {
-  top: 10px;
+  top: 3rem;
   right: 10px;
   width: 180px;
 }
@@ -107,21 +109,22 @@
 }
 
 .bottom-right-panel {
-  bottom: 10px;
-  right: 10px;
+  bottom: 0;
+  right: 0;
   width: 220px;
 }
 
-.weather-panel {
-  display: flex;
-  flex-direction: column;
-  gap: 4px;
-  font-size: 14px;
+
+.bottom-panel {
+    width: 100%;
+    bottom: 10px;
+    right: 10px;
+
+    background-color: transparent;
+    background: none !important;
+    backdrop-filter: none !important;
 }
-.weather-panel h3 {
-  margin: 0 0 4px 0;
-  color: #80d0ff;
-}
+
 
 
 .pollution-panel {
@@ -134,20 +137,6 @@
 .pollution-panel h3 {
   margin: 0 0 4px 0;
   color: #ffb84d;
-}
-
-
-.layers-panel {
-  display: flex;
-  flex-direction: column;
-  gap: 6px;
-  font-size: 14px;
-}
-.layer-checkbox {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  cursor: pointer;
 }
 
 
@@ -173,3 +162,4 @@
 .read-the-docs {
   color: #888;
 }
+

@@ -97,17 +97,36 @@ const loadBoundaries = async (viewer) => {
   // viewer.zoomTo(dataSource);
 };
 
+async function aggregateTiles(viewer, get_url_callback) {
+    const url = await get_url_callback();
+    console.info(url);
+
+    return viewer.imageryLayers.addImageryProvider(
+        new Cesium.UrlTemplateImageryProvider({
+            url: url,
+            tilingScheme: new Cesium.WebMercatorTilingScheme(),
+            maximumLevel: 12
+        })
+    )
+}
+
 async function loadTiles(viewer) {
     assert(viewer?.dataSources && viewer?.scene, "Must be a viewer object with dataSources");
-    const url_tj = await get_tiles_url_tj();
-    const url_na = await get_tiles_url_na();
 
-    console.info(url_tj);
+    let tj_provider = await aggregateTiles(viewer, get_tiles_url_tj)
+    let na_provider = await aggregateTiles(viewer, get_tiles_url_na)
+
+    return {
+        "Tajikistan": tj_provider,
+        "North America": na_provider
+    }
+
+    /* console.info(url_tj);
     viewer.imageryLayers.addImageryProvider(
         new Cesium.UrlTemplateImageryProvider({
             url: url_tj,
             tilingScheme: new Cesium.WebMercatorTilingScheme(),
-            maximumLevel: 8
+            maximumLevel: 12
         })
     );
 
@@ -115,9 +134,9 @@ async function loadTiles(viewer) {
         new Cesium.UrlTemplateImageryProvider({
             url: url_na,
             tilingScheme: new Cesium.WebMercatorTilingScheme(),
-            maximumLevel: 8
+            maximumLevel: 12
         })
-    );
+    ); */
 }
 
 /** 
@@ -171,7 +190,7 @@ function momyHandler(viewer, action_handlers, callback_handlers) {
 function addClickHandler(viewer, handler, onClick) {
   assert(!!viewer.scene, "Viewer didn't load properly");
 
-  const { coords, loading, error, getCurrent, startWatch, stopWatch } = getUserLocation();
+  // const { coords, loading, error, getCurrent, startWatch, stopWatch } = getUserLocation();
   let pin = null;
   const pin_config = {
     name: "pin",
@@ -183,7 +202,7 @@ function addClickHandler(viewer, handler, onClick) {
     const pickedPosition = scene.pickPosition(movement.position);
 
     if (Cesium.defined(pickedPosition)) {
-        getCurrent();
+        // getCurrent();
       const cartographic = Cesium.Cartographic.fromCartesian(pickedPosition);
       const longitude = Cesium.Math.toDegrees(cartographic.longitude);
       const latitude = Cesium.Math.toDegrees(cartographic.latitude);
@@ -192,7 +211,7 @@ function addClickHandler(viewer, handler, onClick) {
         console.log(longitude, latitude);
 
         viewer.camera.flyTo({
-            destination: Cesium.Cartesian3.fromDegrees(longitude, latitude, 70_000), // lon, lat, height (meters)
+            destination: Cesium.Cartesian3.fromDegrees(longitude, latitude, 170_000), // lon, lat, height (meters)
             duration: 2.0 // seconds
         });
 
@@ -286,8 +305,9 @@ function addHoverHandler(viewer, handler) {
   }, Cesium.ScreenSpaceEventType.MOUSE_MOVE);
 }
 
-const CesiumViewer = ({ handler, layer }) => {
+const CesiumViewer = ({ handler, layers }) => {
   const cesiumContainer = useRef(null);
+    const providers = useRef(null);
   const [pin, setPin] = useState(null);
   const eventHandler = useRef(null);
   const isInitializing = useRef(false);
@@ -313,7 +333,7 @@ const CesiumViewer = ({ handler, layer }) => {
 
           viewer.current = new Cesium.Viewer(cesiumContainer.current, {
             terrainProvider: worldTerrain,
-            skyAtmosphere: new Cesium.SkyAtmosphere(),
+            // skyAtmosphere: new Cesium.SkyAtmosphere(),
             dataSources: new Cesium.DataSourceCollection(),
             baseLayerPicker: true,
             vrButton: false,
@@ -323,17 +343,14 @@ const CesiumViewer = ({ handler, layer }) => {
             creditContainer: document.createElement("div"), // Hide credits
             timeline: false,
             fullscreenButton: false,
-            geocoder: false,
+            geocoder: true,
             homeButton: false,
             infoBox: false,
             selectionIndicator: false,
           });
 
           viewer.current.scene.sun = new Cesium.Sun();
-          viewer.current.scene.moon = new Cesium.Moon();
-
-          viewer.current.scene.globe.depthTestAgainstTerrain = false;
-          viewer.current.scene.globe.terrainExaggeration = 1.0;
+          viewer.current.scene.globe.enableLighting = true;
 
           // Smooth camera controls
           viewer.current.cesiumWidget.screenSpaceEventHandler.removeInputAction(
@@ -341,62 +358,14 @@ const CesiumViewer = ({ handler, layer }) => {
           );
           viewer.current.camera.constrainedAxis = Cesium.Cartesian3.UNIT_Z;
 
-          const entities = [
-            {
-              name: "North America",
-              position: Cesium.Cartesian3.fromDegrees(48.17, -100.17),
-              color: Cesium.Color.RED,
-            },
-          ];
-
-          /* const northAmericaRectangle = viewer.current?.entities.add({
-                        name: "North America",
-                        rectangle: {
-                            coordinates: Cesium.Rectangle.fromDegrees(
-                                -168.0, // west: slightly west of Alaska
-                                5.0,    // south: slightly south of Panama
-                                -50.0,  // east: slightly east of Greenland
-                                83.0    // north: slightly north of northern Canada
-                            ),                            material: Cesium.Color.RED.withAlpha(0.5), // semi-transparent red
-                            outline: true,
-                            outlineColor: Cesium.Color.WHITE,
-                            outlineWidth: 2,
-                        }
-                    }); */
-
-          entities.forEach((entity) => {
-            viewer.current?.entities.add({
-              name: entity.name,
-              position: entity.position,
-              point: {
-                pixelSize: 8,
-                color: entity.color,
-                outlineColor: Cesium.Color.WHITE,
-                outlineWidth: 2,
-                heightReference: Cesium.HeightReference.CLAMP_TO_GROUND,
-              },
-              label: {
-                text: entity.name,
-                font: "24pt monospace",
-                style: Cesium.LabelStyle.FILL_AND_OUTLINE,
-                outlineWidth: 2,
-                verticalOrigin: Cesium.VerticalOrigin.BOTTOM,
-                pixelOffset: new Cesium.Cartesian2(0, -9),
-                fillColor: Cesium.Color.WHITE,
-                outlineColor: Cesium.Color.BLACK,
-              },
-            });
-          });
 
           // await loadBoundaries(viewer.current);
-
           // const na_bounds = { west: -130, south: 20, east: -60, north: 50 };
-          // let heatmap_canvas = await render_aqi_points(viewer.current, na_bounds);
-          // addHeatmap(viewer.current, heatmap_canvas, na_bounds);
 
-          await loadTiles(viewer.current);
+          providers.current = await loadTiles(viewer.current);
 
-          eventHandler.current = momyHandler(
+
+            eventHandler.current = momyHandler(
             viewer.current,
             [addClickHandler, addHoverHandler],
             [handler, null]
@@ -434,6 +403,40 @@ const CesiumViewer = ({ handler, layer }) => {
       }
     };
   }, []);
+
+    useEffect(() => {
+        if (providers.current) {
+            console.info("Layers:", layers, providers.current);
+            const tj_provider = providers.current["Tajikistan"];
+            const na_provider = providers.current["North America"];
+
+            Object.entries(layers).forEach(([key, value]) => {
+                if (value) {
+                    if (key === "Tajikistan") {
+                        console.log(`Turn ON layer for ${key}`);
+                        tj_provider.show = true;
+                    }
+
+                    if (key === "North America") {
+                        console.log(`Turn ON layer for ${key}`);
+                        na_provider.show = true;
+                    }
+
+                } else {
+                    if (key === "Tajikistan") {
+                        console.log(`Turn OFF layer for ${key}`);
+                        tj_provider.show = false;
+                    }
+
+                    if (key === "North America") {
+                        console.log(`Turn OFF layer for ${key}`);
+                        na_provider.show = false;
+                    }
+
+                }
+            });
+        }
+    }, [layers])
 
   return (
     <div style={{ position: "relative", width: "100%", height: "100vh" }}>
