@@ -84,6 +84,7 @@ const loadBoundaries = async (viewer) => {
           }
         });
 
+
         return geoJsonSource;
       })
       .catch((e) => {
@@ -152,38 +153,6 @@ function momyHandler(viewer, action_handlers, callback_handlers) {
 }
 
 /**
- * @function Higher-order function that binds all handlers
- * @param {Cesium.Viewer} viewer that will be modified
- * @param {Array<Function>} action_handlers - an array of handlers to be binded
- * @throws {AssertionError} When input is not a correct Cesium viewer.
- * @returns {Cesium.ScreenSpaceEventHandler};
- * */
-function momyHandler(viewer, action_handlers, callback_handlers) {
-  assert(
-    !!viewer?.dataSources && !!viewer?.scene,
-    "Must be an existing viewer"
-  );
-
-  console.info("Viewer state:", viewer.isDestroyed());
-  if (!!viewer.isDestroyed()) {
-    console.info("Called upon destroyed viewer");
-    return;
-  }
-
-  console.log("Momy was summoned");
-  const handler = new Cesium.ScreenSpaceEventHandler(viewer.scene.canvas);
-  for (let i = 0; i < action_handlers.length; ++i) {
-    if (callback_handlers[i]) {
-      action_handlers[i](viewer, handler, callback_handlers[i]);
-    } else {
-      action_handlers[i](viewer, handler);
-    }
-  }
-
-  return handler;
-}
-
-/**
  * @function This function is not pure.
  * @todo Add requests to the server with lat and lon. Finish doc for handler
  * @param {Cesium.Viewer} viewer that will be modified
@@ -202,6 +171,7 @@ function momyHandler(viewer, action_handlers, callback_handlers) {
 function addClickHandler(viewer, handler, onClick) {
   assert(!!viewer.scene, "Viewer didn't load properly");
 
+  const { coords, loading, error, getCurrent, startWatch, stopWatch } = getUserLocation();
   let pin = null;
   const pin_config = {
     name: "pin",
@@ -213,6 +183,7 @@ function addClickHandler(viewer, handler, onClick) {
     const pickedPosition = scene.pickPosition(movement.position);
 
     if (Cesium.defined(pickedPosition)) {
+        getCurrent();
       const cartographic = Cesium.Cartographic.fromCartesian(pickedPosition);
       const longitude = Cesium.Math.toDegrees(cartographic.longitude);
       const latitude = Cesium.Math.toDegrees(cartographic.latitude);
@@ -220,14 +191,19 @@ function addClickHandler(viewer, handler, onClick) {
 
         console.log(longitude, latitude);
 
+        viewer.camera.flyTo({
+            destination: Cesium.Cartesian3.fromDegrees(longitude, latitude, 70_000), // lon, lat, height (meters)
+            duration: 2.0 // seconds
+        });
+
       if (onClick) onClick(longitude, latitude);
 
       // Manage the pin on map
       if (pin) viewer.entities.remove(pin);
       pin = viewer.entities.add({
+          id: "user-location",
         name: pin_config.name,
         position: Cesium.Cartesian3.fromDegrees(longitude, latitude),
-        id: "pin_configId",
         point: {
           pixelSize: 8,
           color: pin_config.color,
@@ -241,6 +217,39 @@ function addClickHandler(viewer, handler, onClick) {
     }
   }, Cesium.ScreenSpaceEventType.LEFT_CLICK);
 }
+
+function flyToAndPin(viewer, latitude, longitude, options = {}) {
+  const { height = 70_000, pinName = "You" } = options;
+
+  // fly camera
+  viewer.camera.flyTo({
+    destination: Cesium.Cartesian3.fromDegrees(longitude, latitude, height),
+    duration: 2
+  });
+
+  const existing = viewer.entities.getById("user-location");
+  if (existing) viewer.entities.remove(existing);
+
+  viewer.entities.add({
+    id: "user-location",
+    name: pinName,
+    position: Cesium.Cartesian3.fromDegrees(longitude, latitude, 0),
+    point: {
+      pixelSize: 12,
+      color: Cesium.Color.CYAN,
+      outlineColor: Cesium.Color.WHITE,
+      outlineWidth: 2,
+      heightReference: Cesium.HeightReference.CLAMP_TO_GROUND
+    },
+    label: {
+      text: pinName,
+      font: "16px sans-serif",
+      verticalOrigin: Cesium.VerticalOrigin.BOTTOM,
+      pixelOffset: new Cesium.Cartesian2(0, -14)
+    }
+  });
+}
+
 
 /**
  * @function This function is not pure.
@@ -385,7 +394,6 @@ const CesiumViewer = ({ handler }) => {
           // let heatmap_canvas = await render_aqi_points(viewer.current, na_bounds);
           // addHeatmap(viewer.current, heatmap_canvas, na_bounds);
 
-          console.log("RUNNING URL FETCHING");
           await loadTiles(viewer.current);
 
           eventHandler.current = momyHandler(
