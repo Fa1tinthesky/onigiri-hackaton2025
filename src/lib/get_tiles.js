@@ -1,5 +1,5 @@
-export default async function() { 
-    const url = `https://asia-south2-saasbusiness-49fbe.cloudfunctions.net/ee_tempo`;
+export default async function get_tiles_url() { 
+    const url = "https://asia-south2-saasbusiness-49fbe.cloudfunctions.net/tj_tiles";
     console.log(url);
 
     try {
@@ -7,10 +7,10 @@ export default async function() {
         if (!response.ok) {
             throw new Error(`Respones status: ${response.status}`);
         }
-        console.log(response)
         const result = await response.json();
-        console.log("url: ", result.url_template);
-        return(url + result.url_template); 
+        console.log("URL:", result.urlTemplate)
+
+        return (result.urlTemplate);
     } catch (error) {
         console.error("Error from get_tiles:", error.message);
     }

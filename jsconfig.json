@@ -1,0 +1,12 @@
+{
+  "compilerOptions": {
+    "target": "ES2020",
+    "module": "esnext",
+    "moduleResolution": "node",
+    "checkJs": true,          // enables type-checking in JS files
+    "allowJs": true,          // allow JavaScript files
+    "jsx": "react-jsx",        // only if using React
+    "types": ["vite/client"]
+  },
+  "include": ["src"]
+}
