@@ -1,16 +1,4 @@
-import { useState } from "react";
-
-export default function Layers() {
-  const [layers, setLayers] = useState({
-    temperature: true,
-    pollution: true,
-    wind: false,
-  });
-
-  const toggleLayer = (key) => {
-    setLayers({ ...layers, [key]: !layers[key] });
-  };
-
+export default function Layers({ layers, toggleLayer }) {
   return (
     <div className="layers-panel">
       <h4>🗺 Layers</h4>
