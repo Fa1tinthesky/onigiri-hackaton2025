@@ -1,5 +1,4 @@
 import { useState, useEffect } from "react";
-import get_aqi from "../utils/get_aqi";
 
 const weatherCodeMap = {
   0: { text: "Clear", icon: "☀️" },
@@ -42,33 +41,48 @@ export const useMeteo = (lat, lon) => {
 
     const fetchData = async () => {
       setLoading(true);
+      setError(null);
+
       try {
-        /* const response = await fetch(
-          `https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lon}&hourly=temperature_2m,weathercode,windspeed_10m&air_quality=pm10,pm2_5,no2,o3,so2,co`
-        `
+        const res = await fetch(
+          "https://asia-south2-saasbusiness-49fbe.cloudfunctions.net/get_point_data",
+          {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            mode: "cors", // <<< this ensures the browser enforces CORS
+            body: JSON.stringify({ lat: 38.5, lon: 68.7 }),
+          }
         );
-        const json = await response.json(); */
 
-              const json = await get_aqi({lat, lon});
-          console.log("LOGIN JSON FROM useMETEO: ", json);
+        console.log(res)
 
-        const hours = json.hourly.time.map((time, i) => ({
+        const json = await res.json(); // Now this should work!
+
+        // Ensure structure matches your backend response
+        if (!json?.times || !json?.pollution) {
+          throw new Error("Invalid response format");
+        }
+
+        const times = json.times;
+        const pollution = json.pollution;
+
+        const hours = times.map((time, i) => ({
           time,
-          temperature: json.hourly.temperature_2m[i],
-          windspeed: json.hourly.windspeed_10m[i],
-          weatherCode: json.hourly.weathercode[i],
-          weather: weatherCodeMap[json.hourly.weathercode[i]] || { text: "Unknown", icon: "❔" },
-          pm25: json.hourly.pm2_5 ? json.hourly.pm2_5[i] : null,
-          no2: json.hourly.no2 ? json.hourly.no2[i] : null,
-          pm10: json.hourly.pm10 ? json.hourly.pm10[i] : null,
-          o3: json.hourly.o3 ? json.hourly.o3[i] : null,
-          so2: json.hourly.so2 ? json.hourly.so2[i] : null,
-          co: json.hourly.co ? json.hourly.co[i] : null,
+          pm25: pollution.pm2_5?.[i] ?? null,
+          pm10: pollution.pm10?.[i] ?? null,
+          no2: pollution.no2?.[i] ?? null,
+          so2: pollution.so2?.[i] ?? null,
+          co: pollution.co?.[i] ?? null,
+          o3: pollution.o3?.[i] ?? null,
+          aqi_pm25: pollution.us_aqi_pm2_5?.[i] ?? null,
+          aqi_pm10: pollution.us_aqi_pm10?.[i] ?? null,
+          aqi_o3: pollution.us_aqi_o3?.[i] ?? null,
         }));
 
+        console.log("✅ Latest AQI:", hours.at(-1)?.aqi_pm25);
         setData(hours);
       } catch (err) {
-        console.error(err);
+        console.error("❌ Fetch error:", err);
         setError(err);
       } finally {
         setLoading(false);
@@ -80,4 +94,3 @@ export const useMeteo = (lat, lon) => {
 
   return { data, loading, error };
 };
-

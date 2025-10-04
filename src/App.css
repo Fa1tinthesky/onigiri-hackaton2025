@@ -1,7 +1,6 @@
 #root {
   max-width: 1280px;
   margin: 0 auto;
-  padding: 2rem;
   text-align: center;
 }
 
@@ -76,6 +75,81 @@
 .logo.react:hover {
   filter: drop-shadow(0 0 2em #61dafbaa);
 }
+
+
+.map-container {
+  position: relative;
+  height: 100vh;
+  width: 100%;
+}
+
+.floating-panels > div {
+  position: absolute;
+  background: rgba(20, 20, 30, 0.75);
+  color: #fff;
+  backdrop-filter: blur(10px);
+  border-radius: 12px;
+  padding: 12px 16px;
+  font-family: 'Inter', sans-serif;
+  pointer-events: auto; /* Important: still allows map interaction outside */
+}
+
+.top-right-panel {
+  top: 10px;
+  right: 10px;
+  width: 180px;
+}
+
+.right-panel {
+  top: 25%;
+  right: 10px;
+  width: 200px;
+}
+
+.bottom-right-panel {
+  bottom: 10px;
+  right: 10px;
+  width: 220px;
+}
+
+.weather-panel {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  font-size: 14px;
+}
+.weather-panel h3 {
+  margin: 0 0 4px 0;
+  color: #80d0ff;
+}
+
+
+.pollution-panel {
+  display: flex;
+  flex-direction: column;
+  border-left: 5px solid #4CAF50;
+  padding-left: 10px;
+  font-size: 14px;
+}
+.pollution-panel h3 {
+  margin: 0 0 4px 0;
+  color: #ffb84d;
+}
+
+
+.layers-panel {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  font-size: 14px;
+}
+.layer-checkbox {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  cursor: pointer;
+}
+
 
 @keyframes logo-spin {
   from {
