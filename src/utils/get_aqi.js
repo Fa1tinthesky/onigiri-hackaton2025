@@ -20,10 +20,9 @@ function calc_aqi(pollution_data, hours_forward) {
 
 /**
     * @function
-    * @param {Number} hours_forward - how many hours predict to 
     * @param {Object<Number, Number>} pos - lat and lon position for which to fetch data 
     */
-export default async function(hours_forward, pos) {
+export default async function(pos) {
     const url = "https://asia-south2-saasbusiness-49fbe.cloudfunctions.net/get_point_data";
     
     console.info("TRYING TO FETCH METEO DATA");
@@ -47,7 +46,7 @@ export default async function(hours_forward, pos) {
         const data = await response.json();
         console.log(JSON.stringify(data, null, 2));
 
-        return calc_aqi(data, hours_forward);
+        return data;
     } catch (e) {
         console.error("Happened:", e.message);
     }
