@@ -1,44 +1,95 @@
 import "./css/PollutionCard.css";
 
-export default function PollutionCard({ data }) {
-    if (!data) return null;
+export default function PollutionCard({ pollution, time }) {
+  if (!pollution) return null;
 
-    function get_aqi_level(aqi) {
-        if (aqi <= 50) return { 
-            aqi: "Good", 
-            suggestion: "Air is clean. Go touch some grass"
-        }
-        else if (aqi <= 100) return { 
-            aqi: "Moderate", 
-            suggestion: "Sensitive people (children, elderly) should consider limiting long outdoor exertion."
-        }
-        else if (aqi <= 150) return { 
-            aqi: "Unhealty for sensitive groups", 
-            suggestion: "People with respiratory/heart conditions, children, and older adults should reduce prolonged outdoor exertion. Consider wearing a mask."
-        }
-        else if (aqi <= 200) return { 
-            aqi: "Unhealty", 
-            suggestion: "Everyone should limit outdoor activities, wear an N95/KN95 mask if going out. Avoid heavy exercise outdoors."
-        }
-        else if (aqi <= 300) return { 
-            aqi: "Very unhealthy", 
-            suggestion: "Stay indoors as much as possible. If outside, wear high-quality masks. Avoid strenuous activities."
-        }
-        else               { return { aqi: "Hazardous", suggestion: "Stay indoors, use air purifiers if available. All outdoor activities should be avoided. Emergency measures may be needed."} }
-    }
+  // ---- AQI conversion (US EPA standard) ----
+  function calcAQI_PM25(pm25) {
+    if (pm25 == null) return null;
+    const breakpoints = [
+      { cLow: 0, cHigh: 12, iLow: 0, iHigh: 50 },
+      { cLow: 12.1, cHigh: 35.4, iLow: 51, iHigh: 100 },
+      { cLow: 35.5, cHigh: 55.4, iLow: 101, iHigh: 150 },
+      { cLow: 55.5, cHigh: 150.4, iLow: 151, iHigh: 200 },
+      { cLow: 150.5, cHigh: 250.4, iLow: 201, iHigh: 300 },
+      { cLow: 250.5, cHigh: 500.4, iLow: 301, iHigh: 500 },
+    ];
 
+    const bp = breakpoints.find((b) => pm25 >= b.cLow && pm25 <= b.cHigh);
+    if (!bp) return 500;
+    return Math.round(
+      ((bp.iHigh - bp.iLow) / (bp.cHigh - bp.cLow)) * (pm25 - bp.cLow) + bp.iLow
+    );
+  }
+
+  function calcAQI_NO2(no2) {
+    if (no2 == null) return null;
+    // µg/m³ conversion (approximate)
+    const breakpoints = [
+      { cLow: 0, cHigh: 53, iLow: 0, iHigh: 50 },
+      { cLow: 54, cHigh: 100, iLow: 51, iHigh: 100 },
+      { cLow: 101, cHigh: 360, iLow: 101, iHigh: 150 },
+      { cLow: 361, cHigh: 649, iLow: 151, iHigh: 200 },
+      { cLow: 650, cHigh: 1249, iLow: 201, iHigh: 300 },
+      { cLow: 1250, cHigh: 2049, iLow: 301, iHigh: 400 },
+      { cLow: 2050, cHigh: 4049, iLow: 401, iHigh: 500 },
+    ];
+
+    const bp = breakpoints.find((b) => no2 >= b.cLow && no2 <= b.cHigh);
+    if (!bp) return 500;
+    return Math.round(
+      ((bp.iHigh - bp.iLow) / (bp.cHigh - bp.cLow)) * (no2 - bp.cLow) + bp.iLow
+    );
+  }
+
+  // ---- Determine what to use ----
+  const aqi_pm25 = pollution.aqi_pm25 ?? calcAQI_PM25(pollution.pm25);
+  const aqi_no2 = pollution.aqi_no2 ?? calcAQI_NO2(pollution.no2);
+  const aqi = aqi_pm25 || aqi_no2 || null;
+
+  // ---- Get descriptive level ----
+  function getAQILevel(aqi) {
+    if (aqi == null) return { level: "N/A", msg: "No data available." };
+    if (aqi <= 50)
+      return { level: "Good", msg: "Air is clean. Go touch some grass 🌿" };
+    if (aqi <= 100)
+      return { level: "Moderate", msg: "Decent air — still fine for a walk." };
+    if (aqi <= 150)
+      return {
+        level: "Unhealthy for Sensitive Groups",
+        msg: "Children, elderly, or those with heart/lung issues should limit outdoor activity.",
+      };
+    if (aqi <= 200)
+      return {
+        level: "Unhealthy",
+        msg: "Air quality is poor. Avoid heavy exercise outdoors.",
+      };
+    if (aqi <= 300)
+      return {
+        level: "Very Unhealthy",
+        msg: "Everyone should limit outdoor activity. Stay indoors if possible.",
+      };
+    return {
+      level: "Hazardous",
+      msg: "Stay indoors. Seriously. This is toxic air.",
+    };
+  }
+
+  const info = getAQILevel(aqi);
+
+  // ---- UI ----
   return (
     <div className="pollution-card">
       <h4>
-        {new Date(data.time).toLocaleTimeString([], {
+        {new Date(time).toLocaleTimeString([], {
           hour: "2-digit",
           minute: "2-digit",
         })}
       </h4>
-      <p>blaaaaaaa</p>
+      <p>
+        AQI: <strong>{Math.round(aqi)}</strong> ({info.level})
+      </p>
+      <p className="pollution-suggestion">{info.msg}</p>
     </div>
   );
-
-        return <></>
 }
-

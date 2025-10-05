@@ -4,8 +4,7 @@ import PollutionCard from "./PollutionCard";
 import "./css/WeatherPanel.css";
 
 export default function WeatherPanel({ data }) {
-  if (!data) return false  
-  console.log(data)
+  if (!data) return false;
   // const [normalized, setNormalized] = useState([]);
 
   // useEffect(() => {
@@ -152,20 +151,17 @@ export default function WeatherPanel({ data }) {
   //   return "☁️";
   // }
 
-
   // Example usage:
-  
 
   return (
     <div className="weather-panel">
+      {/* {data.map((item, index) => (
+        <WeatherCard weather={item.weather} key={index} time={item.time} />
+      ))} */}
       {data.map((item, index) => (
-        <WeatherCard
-          weather={item.weather}
-          key={index}
-          time={item.time}
-        />
+        <PollutionCard pollution={item.pollution} key={index} time={item.time} />
       ))}
-          <PollutionCard data={{}}/>
+      
     </div>
   );
 }

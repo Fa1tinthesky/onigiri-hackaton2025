@@ -1,12 +1,12 @@
-import React, { useEffect, useRef, useState} from 'react';
-import * as Cesium from 'cesium';
-import { assert } from '../utils/assert.js';
+import React, { useEffect, useRef, useState } from "react";
+import * as Cesium from "cesium";
+import { assert } from "../utils/assert.js";
 
-import CesiumNavigation from 'cesium-navigation-es6';
-import get_tiles_url_tj from '../lib/get_tiles_tj.js';
-import get_tiles_url_na from '../lib/get_tiles_na.js';
+import CesiumNavigation from "cesium-navigation-es6";
+import get_tiles_url_tj from "../lib/get_tiles_tj.js";
+import get_tiles_url_na from "../lib/get_tiles_na.js";
 
-import PollutionPanel from './PollutionPanel.jsx';
+import PollutionPanel from "./PollutionPanel.jsx";
 
 Cesium.Ion.defaultAccessToken = import.meta.env.VITE_CESIUM_API;
 
@@ -85,7 +85,6 @@ const loadBoundaries = async (viewer) => {
           }
         });
 
-
         return geoJsonSource;
       })
       .catch((e) => {
@@ -99,30 +98,33 @@ const loadBoundaries = async (viewer) => {
 };
 
 async function aggregateTiles(viewer, get_url_callback) {
-    const url = await get_url_callback();
-    console.info(url);
+  const url = await get_url_callback();
+  console.info(url);
 
-    return viewer.imageryLayers.addImageryProvider(
-        new Cesium.UrlTemplateImageryProvider({
-            url: url,
-            tilingScheme: new Cesium.WebMercatorTilingScheme(),
-            maximumLevel: 12
-        })
-    )
+  return viewer.imageryLayers.addImageryProvider(
+    new Cesium.UrlTemplateImageryProvider({
+      url: url,
+      tilingScheme: new Cesium.WebMercatorTilingScheme(),
+      maximumLevel: 12,
+    })
+  );
 }
 
 async function loadTiles(viewer) {
-    assert(viewer?.dataSources && viewer?.scene, "Must be a viewer object with dataSources");
+  assert(
+    viewer?.dataSources && viewer?.scene,
+    "Must be a viewer object with dataSources"
+  );
 
-    let tj_provider = await aggregateTiles(viewer, get_tiles_url_tj)
-    let na_provider = await aggregateTiles(viewer, get_tiles_url_na)
+  let tj_provider = await aggregateTiles(viewer, get_tiles_url_tj);
+  let na_provider = await aggregateTiles(viewer, get_tiles_url_na);
 
-    return {
-        "Tajikistan": tj_provider,
-        "North America": na_provider
-    }
+  return {
+    Tajikistan: tj_provider,
+    "North America": na_provider,
+  };
 
-    /* console.info(url_tj);
+  /* console.info(url_tj);
     viewer.imageryLayers.addImageryProvider(
         new Cesium.UrlTemplateImageryProvider({
             url: url_tj,
@@ -140,36 +142,36 @@ async function loadTiles(viewer) {
     ); */
 }
 
-/** 
-    * @function Higher-order function that binds all handlers
-    * @param {Cesium.Viewer} viewer that will be modified
-    * @param {Array<Function>} action_handlers - an array of handlers to be binded
-    * @throws {AssertionError} When input is not a correct Cesium viewer.
-    * @returns {Cesium.ScreenSpaceEventHandler};
-    * */
+/**
+ * @function Higher-order function that binds all handlers
+ * @param {Cesium.Viewer} viewer that will be modified
+ * @param {Array<Function>} action_handlers - an array of handlers to be binded
+ * @throws {AssertionError} When input is not a correct Cesium viewer.
+ * @returns {Cesium.ScreenSpaceEventHandler};
+ * */
 function momyHandler(viewer, action_handlers, callback_handlers) {
-    assert(
-        !!viewer?.dataSources && !!viewer?.scene, 
-        "Must be an existing viewer"
-    );
+  assert(
+    !!viewer?.dataSources && !!viewer?.scene,
+    "Must be an existing viewer"
+  );
 
-    console.info("Viewer state:", viewer.isDestroyed());
-    if (!!viewer.isDestroyed()) {
-        console.info("Called upon destroyed viewer");
-        return;
+  console.info("Viewer state:", viewer.isDestroyed());
+  if (!!viewer.isDestroyed()) {
+    console.info("Called upon destroyed viewer");
+    return;
+  }
+
+  console.log("Momy was summoned");
+  const handler = new Cesium.ScreenSpaceEventHandler(viewer.scene.canvas);
+  for (let i = 0; i < action_handlers.length; ++i) {
+    if (callback_handlers[i]) {
+      action_handlers[i](viewer, handler, callback_handlers[i]);
+    } else {
+      action_handlers[i](viewer, handler);
     }
+  }
 
-    console.log("Momy was summoned");
-    const handler = new Cesium.ScreenSpaceEventHandler(viewer.scene.canvas);
-    for (let i = 0; i < action_handlers.length; ++i) {
-        if (callback_handlers[i]) {
-            action_handlers[i](viewer, handler, callback_handlers[i])
-        } else {
-            action_handlers[i](viewer, handler);
-        }
-    }
-
-    return handler;
+  return handler;
 }
 
 /**
@@ -203,15 +205,15 @@ function addClickHandler(viewer, handler, onClick) {
     const pickedPosition = scene.pickPosition(movement.position);
 
     if (Cesium.defined(pickedPosition)) {
-        // getCurrent();
+      // getCurrent();
       const cartographic = Cesium.Cartographic.fromCartesian(pickedPosition);
       const longitude = Cesium.Math.toDegrees(cartographic.longitude);
       const latitude = Cesium.Math.toDegrees(cartographic.latitude);
       const height = cartographic.height;
 
-        console.log(longitude, latitude);
+      console.log(longitude, latitude);
 
-        /* viewer.camera.flyTo({
+      /* viewer.camera.flyTo({
             destination: Cesium.Cartesian3.fromDegrees(longitude, latitude, 170_000), // lon, lat, height (meters)
             duration: 2.0 // seconds
         }); */
@@ -221,7 +223,7 @@ function addClickHandler(viewer, handler, onClick) {
       // Manage the pin on map
       if (pin) viewer.entities.remove(pin);
       pin = viewer.entities.add({
-          id: "user-location",
+        id: "user-location",
         name: pin_config.name,
         position: Cesium.Cartesian3.fromDegrees(longitude, latitude),
         point: {
@@ -244,7 +246,7 @@ function flyToAndPin(viewer, latitude, longitude, options = {}) {
   // fly camera
   viewer.camera.flyTo({
     destination: Cesium.Cartesian3.fromDegrees(longitude, latitude, height),
-    duration: 2
+    duration: 2,
   });
 
   const existing = viewer.entities.getById("user-location");
@@ -259,17 +261,47 @@ function flyToAndPin(viewer, latitude, longitude, options = {}) {
       color: Cesium.Color.CYAN,
       outlineColor: Cesium.Color.WHITE,
       outlineWidth: 2,
-      heightReference: Cesium.HeightReference.CLAMP_TO_GROUND
+      heightReference: Cesium.HeightReference.CLAMP_TO_GROUND,
     },
     label: {
       text: pinName,
       font: "16px sans-serif",
       verticalOrigin: Cesium.VerticalOrigin.BOTTOM,
-      pixelOffset: new Cesium.Cartesian2(0, -14)
-    }
+      pixelOffset: new Cesium.Cartesian2(0, -14),
+    },
   });
 }
 
+function setPinAndMoveTo(lat, lon, viewer) {
+  const pinName = "You";
+
+  const longitude = lon;
+  const latitude = lat;
+  const height = 200_000;
+
+  console.log("HERE:", longitude, latitude);
+
+  viewer.camera.flyTo({
+    destination: Cesium.Cartesian3.fromDegrees(longitude, latitude, height),
+    duration: 2,
+  });
+
+  const existing = viewer.entities.getById("user-location");
+  if (existing) viewer.entities.remove(existing);
+
+  viewer.entities.add({
+    id: "user-location",
+    name: pinName,
+    position: Cesium.Cartesian3.fromDegrees(longitude, latitude, 0),
+    point: {
+      pixelSize: 12,
+      color: Cesium.Color.RED,
+      outlineColor: Cesium.Color.WHITE,
+      outlineWidth: 2,
+      heightReference: Cesium.HeightReference.CLAMP_TO_GROUND,
+    },
+  });
+}
 
 /**
  * @function This function is not pure.
@@ -306,9 +338,9 @@ function addHoverHandler(viewer, handler) {
   }, Cesium.ScreenSpaceEventType.MOUSE_MOVE);
 }
 
-const CesiumViewer = ({ handler, layers }) => {
+const CesiumViewer = ({ coords, handler, layers }) => {
   const cesiumContainer = useRef(null);
-    const providers = useRef(null);
+  const providers = useRef(null);
   const [pin, setPin] = useState(null);
   const eventHandler = useRef(null);
   const isInitializing = useRef(false);
@@ -356,39 +388,51 @@ const CesiumViewer = ({ handler, layers }) => {
           );
           viewer.current.camera.constrainedAxis = Cesium.Cartesian3.UNIT_Z;
 
-
           // await loadBoundaries(viewer.current);
           // const na_bounds = { west: -130, south: 20, east: -60, north: 50 };
           providers.current = await loadTiles(viewer.current);
-            new CesiumNavigation(viewer.current, {
-                enableCompass: true,
-                enableZoomControls: true,
-                enableDistanceLegend: false,
-                defaultResetView: Cesium.Rectangle.fromDegrees(-120.0, 20.0, -60.0, 60.0)
-            })
+          new CesiumNavigation(viewer.current, {
+            enableCompass: true,
+            enableZoomControls: true,
+            enableDistanceLegend: false,
+            defaultResetView: Cesium.Rectangle.fromDegrees(
+              -120.0,
+              20.0,
+              -60.0,
+              60.0
+            ),
+          });
 
-            viewer.current.homeButton.viewModel.command.beforeExecute.addEventListener((commandInfo) => {
-                commandInfo.cancel = true; // stop Cesium's default handler
+          viewer.current.homeButton.viewModel.command.beforeExecute.addEventListener(
+            (commandInfo) => {
+              commandInfo.cancel = true; // stop Cesium's default handler
 
-                // Reset BOTH camera position and orientation
-                viewer.current.camera.flyTo({
-                    destination: Cesium.Cartesian3.fromDegrees(-95.0, 40.0, 25000000.0), // your default location
-                    orientation: {
-                        heading: Cesium.Math.toRadians(0.0),
-                        pitch: Cesium.Math.toRadians(-90.0), // look straight down
-                        roll: 0.0,
-                    },
-                    duration: 1.5,
-                });
-            });
+              // Reset BOTH camera position and orientation
+              viewer.current.camera.flyTo({
+                destination: Cesium.Cartesian3.fromDegrees(
+                  -95.0,
+                  40.0,
+                  25000000.0
+                ), // your default location
+                orientation: {
+                  heading: Cesium.Math.toRadians(0.0),
+                  pitch: Cesium.Math.toRadians(-90.0), // look straight down
+                  roll: 0.0,
+                },
+                duration: 1.5,
+              });
+            }
+          );
 
-
-
-            eventHandler.current = momyHandler(
+          eventHandler.current = momyHandler(
             viewer.current,
             [addClickHandler, addHoverHandler],
             [handler, null]
           );
+
+          if (coords) {
+            setPinAndMoveTo(coords.latitude, coords.longitude, viewer.current);
+          }
 
           setIsLoading(false);
           console.log("CONFIG DONE");
@@ -423,21 +467,21 @@ const CesiumViewer = ({ handler, layers }) => {
     };
   }, []);
 
-    // aqi
-    // pm2_5 || pm_10 || no2
-    //
-    useEffect(() => {
-        if (providers.current) {
-            console.info("Layers:", layers, providers.current);
-            const tj_provider = providers.current["Tajikistan"];
-            const na_provider = providers.current["North America"];
+  // aqi
+  // pm2_5 || pm_10 || no2
+  //
+  useEffect(() => {
+    if (providers.current) {
+      console.info("Layers:", layers, providers.current);
+      const tj_provider = providers.current["Tajikistan"];
+      const na_provider = providers.current["North America"];
 
-            Object.entries(layers).forEach(([key, value]) => {
-                const provider = providers.current[key];
-                if (provider) provider.show = value;
-            });
-        }
-    }, [layers])
+      Object.entries(layers).forEach(([key, value]) => {
+        const provider = providers.current[key];
+        if (provider) provider.show = value;
+      });
+    }
+  }, [layers]);
 
   return (
     <div style={{ position: "relative", width: "100%", height: "100vh" }}>
