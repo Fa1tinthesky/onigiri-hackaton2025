@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import CesiumMap from "./components/CesiumMap";
 import Layers from "./components/Layers";
-import PollutionPanel from "./components/pollutionPanel";
+import PollutionPanel from "./components/PollutionPanel";
 import WeatherPanel from "./components/WeatherPanel";
 
 // import { getUserLocation } from "./components/getUserLocation";
@@ -79,9 +79,9 @@ function App() {
           <Layers layers={layers} toggleLayer={toggleLayer} />
         </div>
 
-        {/* <div className="bottom-right-panel"> */}
-        {/*   <WeatherPanel data={data} /> */}
-        {/* </div> */}
+        <div className="top-left">
+          <PollutionPanel data={{aqi: 520}} />
+        </div>
 
           <div className="bottom-panel">
               <WeatherPanel data={data}/>

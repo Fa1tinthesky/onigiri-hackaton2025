@@ -1,0 +1,12 @@
+.sidebar {
+    width: 100%;
+    background: rgba(20, 20, 30, 0.8);
+    backdrop-filter: blur(12px);
+    border-left: 2px solid rgba(255, 255, 255, 0.1);
+    color: white;
+    display: flex;
+    flex-direction: column;
+    box-sizing: border-box;
+    overflow-y: auto;         /* ✅ makes it scrollable vertically */
+    scrollbar-width: thin;
+}
