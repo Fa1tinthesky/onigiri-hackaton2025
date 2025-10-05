@@ -11,17 +11,17 @@ import { useMeteo } from "./hooks/useMeteo";
 import useTempo from "./hooks/useTempo";
 
 function App() {
-      // const { coords, getCurrent, startWatch, stopWatch, loadingUserLocation, errorUserLocation } = getUserLocation();
+  // const { coords, getCurrent, startWatch, stopWatch, loadingUserLocation, errorUserLocation } = getUserLocation();
   const [userLocation, setUserLocation] = useState(null);
   const [lat, setLat] = useState(null);
   const [lon, setLon] = useState(null);
-  
+
   const { coords, coordsError, CoordsLoading } = useUserLocation();
-  const {data, loading, error} = useMeteo(lon, lat);
-  const {dataTempo, loadingTempo, errorTempo} = useTempo(lon, lat);
+  const { data, loading, error } = useMeteo(lon, lat);
+  const { dataTempo, loadingTempo, errorTempo } = useTempo(lon, lat);
   const [layers, setLayers] = useState({
     "North America": true,
-    "Tajikistan": true,
+    Tajikistan: true,
   });
 
   useEffect(() => {
@@ -31,7 +31,7 @@ function App() {
     }
   }, [coords]);
 
-    /* useEffect(() => {
+  /* useEffect(() => {
         if ("geolocation" in navigator) {
     navigator.geolocation.getCurrentPosition(
       (position) => {
@@ -64,7 +64,7 @@ function App() {
             console.error("Geolocation is not supported by this browser.");
         }
     }, []); */
-  
+
   console.log(dataTempo);
 
   const handleMapClick = (lat, lon) => {
@@ -75,28 +75,24 @@ function App() {
   };
 
   const toggleLayer = (key) => {
-      console.log({ ...layers, [key]: !layers[key] });
+    console.log({ ...layers, [key]: !layers[key] });
     setLayers({ ...layers, [key]: !layers[key] });
   };
 
   return (
     <div className="map-container">
-      <CesiumMap layers={layers} handler={handleMapClick} />
+      <CesiumMap coords={coords} layers={layers} handler={handleMapClick} />
       <div className="floating-panels">
         <div className="top-right-panel">
           <Layers layers={layers} toggleLayer={toggleLayer} />
         </div>
 
         <div className="top-left">
-              <PollutionPanel data={{aqi: 520}} />
+          <PollutionPanel data={{ aqi: 520 }} />
         </div>
 
-          <div className="bottom-panel">
-              <WeatherPanel data={data}/>
-          </div>
-
-        <div className="right-panel">
-          <PollutionPanel data={dataTempo} />
+        <div className="bottom-panel">
+          <WeatherPanel data={data} />
         </div>
       </div>
     </div>
