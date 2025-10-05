@@ -5,7 +5,7 @@ import { assert } from '../utils/assert.js';
 import get_tiles_url_tj from '../lib/get_tiles_tj.js';
 import get_tiles_url_na from '../lib/get_tiles_na.js';
 
-import pollutionPanel from './pollutionPanel.jsx';
+import PollutionPanel from './PollutionPanel.jsx';
 
 Cesium.Ion.defaultAccessToken = import.meta.env.VITE_CESIUM_API;
 
