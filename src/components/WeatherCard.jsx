@@ -3,10 +3,7 @@ import "./css/WeatherCard.css";
 
 export default function WeatherCard({
   time,
-  // weather,
-  // temperature,
-  // humidity,
-  // aqi,
+  weather,
 }) {
   return (
     <div className="weather-card">
@@ -16,12 +13,11 @@ export default function WeatherCard({
           minute: "2-digit",
         })}
       </h4>
-      {/* <p>
+      <p>
         {weather?.icon} {weather?.text}
       </p>
-      <p>🌡 {Math.round(temperature)}°C</p>
-      <p>💧 {humidity}%</p>
-      <p>🌫 AQI: {aqi}</p> */}
+      <p>🌡 {Math.round(weather.temperature)}°C</p>
+      <p>💧 {weather.humidity}%</p>
     </div>
   );
 }
