@@ -7,7 +7,6 @@ import WeatherPanel from "./components/WeatherPanel";
 
 // import { getUserLocation } from "./components/getUserLocation";
 import "./App.css";
-import { useMeteo } from "./hooks/useMeteo";
 import { useTempo } from "./hooks/useTempo";
 
 function App() {
@@ -15,14 +14,10 @@ function App() {
   const [userLocation, setUserLocation] = useState(null);
   const [lat, setLat] = useState(null);
   const [lon, setLon] = useState(null);
-
   const { coords, coordsError, CoordsLoading } = useUserLocation();
-  const { data, loading, error } = useMeteo(lon, lat);
-  const {
-    data: dataTempo,
-    loading: loadingTempo,
-    error: errorTempo,
-  } = useTempo(lon, lat);
+
+  const { data, loading, error } = useTempo(lat, lon);
+
   const [layers, setLayers] = useState({
     "North America": true,
     Tajikistan: true,
@@ -31,11 +26,11 @@ function App() {
   useEffect(() => {
     if (coords) {
       console.log("✅ My location:", coords.latitude, coords.longitude);
+      setLat(coords.latitude)
+      setLon(coords.longitude)
       // You can setLat/SetLon here if you want
     }
   }, [coords]);
-
-  console.log(dataTempo);
 
   const handleMapClick = (lat, lon) => {
     setLat(lat);
@@ -58,7 +53,7 @@ function App() {
         </div>
 
         <div className="top-left">
-          <PollutionPanel data={dataTempo} />
+          <PollutionPanel data={data} />
         </div>
 
         <div className="bottom-panel">
