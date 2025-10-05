@@ -1,8 +1,10 @@
 .weather-panel {
     width: 100%;
+    min-height: 9rem;
     display: flex;
     flex-direction: row;
     justify-content: space-around;
+    align-items: center;
 
     overflow-x: auto;
     scrollbar-width: thin; /* for Firefox */

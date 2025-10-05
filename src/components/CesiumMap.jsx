@@ -346,7 +346,7 @@ const CesiumViewer = ({ coords, handler, layers }) => {
             ),
           });
 
-          viewer.current.homeButton.viewModel.command.beforeExecute.addEventListener(
+          /* viewer.current.homeButton.viewModel.command.beforeExecute.addEventListener(
             (commandInfo) => {
               commandInfo.cancel = true; // stop Cesium's default handler
 
@@ -365,7 +365,7 @@ const CesiumViewer = ({ coords, handler, layers }) => {
                 duration: 1.5,
               });
             }
-          );
+          ); */
 
           eventHandler.current = momyHandler(
             viewer.current,

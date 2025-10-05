@@ -19,7 +19,8 @@
 
   flex-shrink: 0;
   width: 7.5rem;
-    height: 6rem;
+  padding: .5rem;
+  min-height: 6rem;
   box-shadow: 0 4px 10px rgba(0, 0, 0, 0.3);
   transition: all 0.2s ease;
   cursor: pointer;
@@ -28,4 +29,9 @@
 .pollution-card:hover {
   transform: translateY(-5px);
   box-shadow: 0 6px 16px rgba(0, 0, 0, 0.4);
+}
+
+.pollution-card__aqi {
+  font-weight: bold;
+  color: purple;
 }

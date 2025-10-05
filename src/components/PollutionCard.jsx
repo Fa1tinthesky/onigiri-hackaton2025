@@ -40,7 +40,7 @@ export default function PollutionCard({ pollution, time }) {
       ((bp.iHigh - bp.iLow) / (bp.cHigh - bp.cLow)) * (pm25 - bp.cLow) + bp.iLow
     );
   }
-  console.log(formatTime(time))
+
   function calcAQI_NO2(no2) {
     if (no2 == null) return null;
     // µg/m³ conversion (approximate)
@@ -129,7 +129,7 @@ export default function PollutionCard({ pollution, time }) {
         {formatTime(time)}
       </h4>
       <p>
-        AQI: <strong>{Math.round(aqi)}</strong> ({info.level})
+        <span className="pollution-card__aqi">AQI:</span> <strong>{Math.round(aqi)}</strong> ({info.level})
       </p>
       <p className="pollution-suggestion">{info.msg}</p>
     </div>
