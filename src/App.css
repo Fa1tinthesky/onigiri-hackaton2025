@@ -150,3 +150,12 @@
   color: #888;
 }
 
+.cesium-viewer-zoomContainer {
+  right: 15px !important;
+  top: 80px !important;
+}
+
+.compass {
+    margin-top: 15px !important;
+}
+

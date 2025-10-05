@@ -54,6 +54,7 @@ button {
   background-color: #1a1a1a;
   cursor: pointer;
   transition: border-color 0.25s;
+  background-color: red;
 }
 button:hover {
   border-color: #646cff;
@@ -82,4 +83,17 @@ button:focus-visible {
 
 .cesium-geocoder-input {
     background-color: red;
+}
+
+.cesium-button {
+    background-color: red;
+}
+
+/* compass */
+.navigation-control {
+    border: none !important;
+    color: red  !important;
+}
+.cesium-viewer-toolbar {
+    right: 150px;
 }

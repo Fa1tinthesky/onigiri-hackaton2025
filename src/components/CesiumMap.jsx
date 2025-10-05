@@ -2,6 +2,7 @@ import React, { useEffect, useRef, useState} from 'react';
 import * as Cesium from 'cesium';
 import { assert } from '../utils/assert.js';
 
+import CesiumNavigation from 'cesium-navigation-es6';
 import get_tiles_url_tj from '../lib/get_tiles_tj.js';
 import get_tiles_url_na from '../lib/get_tiles_na.js';
 
@@ -210,10 +211,10 @@ function addClickHandler(viewer, handler, onClick) {
 
         console.log(longitude, latitude);
 
-        viewer.camera.flyTo({
+        /* viewer.camera.flyTo({
             destination: Cesium.Cartesian3.fromDegrees(longitude, latitude, 170_000), // lon, lat, height (meters)
             duration: 2.0 // seconds
-        });
+        }); */
 
       if (onClick) onClick(longitude, latitude);
 
@@ -363,6 +364,11 @@ const CesiumViewer = ({ handler, layers }) => {
           // const na_bounds = { west: -130, south: 20, east: -60, north: 50 };
 
           providers.current = await loadTiles(viewer.current);
+            new CesiumNavigation(viewer.current, {
+                enableCompass: true,
+                enableZoomControls: true,
+                enableDistanceLegend: false
+            })
 
 
             eventHandler.current = momyHandler(
