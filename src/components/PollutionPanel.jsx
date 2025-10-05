@@ -1,14 +1,18 @@
 export default function PollutionPanel({ data }) {
   if (!data) return null;
+  console.log(data.pollution)
+  const aqi = data.pollution
 
-    function get_aqi_level(aqi) {
-        if (aqi <= 50) return "good"
-        else if (aqi <= 100) return "moderate";
-        else if (aqi <= 150) return "Unhealty for Sensitive Groups";
-        else if (aqi <= 200) return "Unhealty";
-        else if (aqi <= 300) return "Very unhealthy";
-        else               { return "Hazardous"; }
+  function get_aqi_level(aqi) {
+    if (aqi <= 50) return "good";
+    else if (aqi <= 100) return "moderate";
+    else if (aqi <= 150) return "Unhealty for Sensitive Groups";
+    else if (aqi <= 200) return "Unhealty";
+    else if (aqi <= 300) return "Very unhealthy";
+    else {
+      return "Hazardous";
     }
+  }
 
   const getColor = (aqi) => {
     if (aqi <= 50) return "#4CAF50";
@@ -21,14 +25,14 @@ export default function PollutionPanel({ data }) {
   return (
     <div
       className="pollution-panel"
-      style={{ borderLeftColor: getColor(data.aqi) }}
+      style={{ borderLeftColor: getColor(aqi) }}
     >
       <h3>💨 Air Quality</h3>
       <p>
-        <b>AQI:</b> {data.aqi}
+        <b>AQI:</b> {aqi}
       </p>
       <p>
-        <b>Status:</b> {get_aqi_level(data.aqi)}
+        <b>Status:</b> {get_aqi_level(aqi)}
       </p>
     </div>
   );

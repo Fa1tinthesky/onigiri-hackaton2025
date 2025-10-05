@@ -7,18 +7,17 @@ import WeatherPanel from "./components/WeatherPanel";
 
 // import { getUserLocation } from "./components/getUserLocation";
 import "./App.css";
-import { useMeteo } from "./hooks/useMeteo";
-import useTempo from "./hooks/useTempo";
+import { useTempo } from "./hooks/useTempo";
 
 function App() {
   // const { coords, getCurrent, startWatch, stopWatch, loadingUserLocation, errorUserLocation } = getUserLocation();
   const [userLocation, setUserLocation] = useState(null);
   const [lat, setLat] = useState(null);
   const [lon, setLon] = useState(null);
-
   const { coords, coordsError, CoordsLoading } = useUserLocation();
-  const { data, loading, error } = useMeteo(lon, lat);
-  const { dataTempo, loadingTempo, errorTempo } = useTempo(lon, lat);
+
+  const { data, loading, error } = useTempo(lat, lon);
+
   const [layers, setLayers] = useState({
     "North America": true,
     Tajikistan: true,
@@ -27,45 +26,11 @@ function App() {
   useEffect(() => {
     if (coords) {
       console.log("✅ My location:", coords.latitude, coords.longitude);
+      setLat(coords.latitude)
+      setLon(coords.longitude)
       // You can setLat/SetLon here if you want
     }
   }, [coords]);
-
-  /* useEffect(() => {
-        if ("geolocation" in navigator) {
-    navigator.geolocation.getCurrentPosition(
-      (position) => {
-        const { latitude, longitude } = position.coords;
-        console.log("✅ Got location:", latitude, longitude);
-      },
-      (error) => {
-        console.error("❌ Error getting location:", error);
-        switch (error.code) {
-          case error.PERMISSION_DENIED:
-            console.error("User denied the request for Geolocation.");
-            break;
-          case error.POSITION_UNAVAILABLE:
-            console.error("Location information is unavailable.");
-            break;
-          case error.TIMEOUT:
-            console.error("The request to get user location timed out.");
-            break;
-          default:
-            console.error("An unknown error occurred.");
-            break;
-        }
-      },
-      {
-        enableHighAccuracy: true,
-        timeout: 5000,
-        maximumAge: 0
-      }
-    );        } else {
-            console.error("Geolocation is not supported by this browser.");
-        }
-    }, []); */
-
-  console.log(dataTempo);
 
   const handleMapClick = (lat, lon) => {
     setLat(lat);
@@ -88,7 +53,7 @@ function App() {
         </div>
 
         <div className="top-left">
-          <PollutionPanel data={{ aqi: 520 }} />
+          <PollutionPanel data={data} />
         </div>
 
         <div className="bottom-panel">

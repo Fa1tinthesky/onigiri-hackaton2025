@@ -21,3 +21,57 @@ backdrop-filter: (0 0 2em #646cffaa);
   margin: 0 0 4px 0;
   color: #80d0ff;
 }
+
+
+/* ———————— Safe toggle styles, isolated ———————— */
+.weather-panel-wrapper {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 10px;
+}
+
+.wp-toggle {
+  position: relative;
+  width: 8rem;
+  height: 36px;
+  background: #1a1a1a;
+  border-radius: 18px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 10px;
+  color: #ccc;
+  user-select: none;
+}
+
+.wp-toggle-thumb {
+  position: absolute;
+  top: 3px;
+  left: 3px;
+  height: 30px;
+  width: 30px;
+  background: #007aff;
+  color: #fff;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.3s ease;
+}
+
+.wp-toggle-thumb.wp-right {
+  left: calc(100% - 33px);
+  background: #ffb300;
+}
+
+.wp-toggle-label {
+  width: 100%;
+  text-align: center;
+  font-size: 14px;
+  z-index: 2;
+  pointer-events: none;
+}
+
+
