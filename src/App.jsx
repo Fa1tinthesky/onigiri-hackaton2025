@@ -56,8 +56,9 @@ function App() {
             console.error("Geolocation is not supported by this browser.");
         }
     }, []); */
+  
+  console.log(dataTempo);
 
-    console.log(dataTempo);
   const handleMapClick = (lat, lon) => {
     setLat(lat);
     setLon(lon);

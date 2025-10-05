@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 
-const weathercodemap = {
+const weatherCodeMap = {
   0: { text: "clear", icon: "☀️" },
   1: { text: "mainly clear", icon: "🌤" },
   2: { text: "partly cloudy", icon: "⛅" },
@@ -31,20 +31,58 @@ const weathercodemap = {
   99: { text: "thunderstorm w/ hail (heavy)", icon: "⛈" },
 };
 
+function getWeatherTextIcon(wc, cloud = 0, prec = 0) {
+  // Use exact weather code if available
+  if (wc != null && weatherCodeMap[wc]) return weatherCodeMap[wc];
+
+  // Fallback: base on cloud fraction
+  let text, icon;
+  if (cloud < 0.1) {
+    text = "clear";
+    icon = "☀️";
+  } else if (cloud < 0.3) {
+    text = "slightly cloudy";
+    icon = "🌤";
+  } else if (cloud < 0.6) {
+    text = "partly cloudy";
+    icon = "⛅";
+  } else if (cloud < 0.8) {
+    text = "mostly cloudy";
+    icon = "🌥";
+  } else {
+    text = "overcast";
+    icon = "☁️";
+  }
+
+  // Add precipitation info if present
+  if (prec > 0) {
+    if (prec < 2) {
+      text += " 🌦";
+      icon = "🌦";
+    } else if (prec < 5) {
+      text += " 🌧";
+      icon = "🌧";
+    } else {
+      text += " ⛈";
+      icon = "⛈";
+    }
+  }
+
+  return { text, icon };
+}
+
+
 export const useMeteo = (lat, lon) => {
-  const [data, setdata] = useState([]);
-  const [loading, setloading] = useState(true);
-  const [error, seterror] = useState(null);
+  const [data, setData] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
 
   useEffect(() => {
-    if (lat === undefined || lon === undefined) return; // strict check
+    if (lat == null || lon == null) return;
 
-    const fetchdata = async () => {
-      setloading(true);
-      seterror(null);
-
-      const payload = { lat: Number(lat), lon: Number(lon) };
-      console.log("📡 Fetching data with payload:", payload);
+    const fetchData = async () => {
+      setLoading(true);
+      setError(null);
 
       try {
         const res = await fetch(
@@ -52,53 +90,58 @@ export const useMeteo = (lat, lon) => {
           {
             method: "POST",
             headers: { "Content-Type": "application/json" },
-            mode: "cors",
-            body: JSON.stringify(payload),
+            body: JSON.stringify({ lat: Number(lat), lon: Number(lon) }),
           }
         );
 
-       
-
-        // Always parse JSON, but check status first
         const json = await res.json();
-        console.log(json)
-        if (!res.ok) {
-          console.error("❌ Backend returned error:", json);
-          throw new Error(json?.error || `HTTP ${res.status}`);
-        }
+        if (!res.ok) throw new Error(json?.error || `HTTP ${res.status}`);
 
-        // Validate expected structure
-        if (!json?.times || !json?.pollution) {
-          console.error("⚠️ Unexpected response format:", json);
-          throw new Error("Invalid response format");
-        }
+        const { times, pollution, weather } = json;
 
-        const { times, pollution } = json;
+        if (!times) throw new Error("No times in response");
 
-        const hours = times.map((time, i) => ({
-          time,
-          pm25: pollution.pm2_5?.[i] ?? null,
-          pm10: pollution.pm10?.[i] ?? null,
-          no2: pollution.no2?.[i] ?? null,
-          so2: pollution.so2?.[i] ?? null,
-          co: pollution.co?.[i] ?? null,
-          o3: pollution.o3?.[i] ?? null,
-          aqi_pm25: pollution.us_aqi_pm2_5?.[i] ?? null,
-          aqi_pm10: pollution.us_aqi_pm10?.[i] ?? null,
-          aqi_o3: pollution.us_aqi_o3?.[i] ?? null,
-        }));
+        const normalized = times.map((time, i) => {
+          const pm25 = pollution?.pm2_5?.[i] ?? null;
+          const no2 = pollution?.no2?.[i] ?? null;
+          const aqi_pm25 = pollution?.us_aqi_pm2_5?.[i] ?? null;
+          const aqi_no2 = pollution?.us_aqi_no2?.[i] ?? null;
 
-        console.log("✅ latest aqi:", hours.at(-1)?.aqi_pm25);
-        setdata(hours);
+          const wc = weather?.weathercode?.[i];
+          const temp = weather?.temperature_2m?.[i];
+          const rh = weather?.relative_humidity_2m?.[i];
+          const wind = weather?.windspeed_10m?.[i];
+          const prec = weather?.precipitation?.[i];
+          const cloud = weather?.cloudcover?.[i];
+
+          const { text, icon } = getWeatherTextIcon(wc, cloud, prec);
+
+          return {
+            time,
+            pollution: { pm25, no2, aqi_pm25, aqi_no2 },
+            weather: {
+              code: wc ?? null,
+              text,
+              icon,
+              temperature: temp ?? null,
+              humidity: rh ?? null,
+              windspeed: wind ?? null,
+              precipitation: prec ?? null,
+              cloudcover: cloud ?? null,
+            },
+          };
+        });
+
+        setData(normalized);
       } catch (err) {
         console.error("❌ fetch error:", err);
-        seterror(err);
+        setError(err);
       } finally {
-        setloading(false);
+        setLoading(false);
       }
     };
 
-    fetchdata();
+    fetchData();
   }, [lat, lon]);
 
   return { data, loading, error };

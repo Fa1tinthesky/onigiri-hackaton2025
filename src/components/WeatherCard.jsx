@@ -1,13 +1,23 @@
 import React from "react";
 import "./css/WeatherCard.css";
 
-export default function WeatherCard({ time, weather, temperature }) {
+export default function WeatherCard({
+  time,
+  weather,
+}) {
   return (
     <div className="weather-card">
-      <h3 className="weather-time">{time}</h3>
-      <p className="weather-info">{weather}</p>
-      {temperature && <p className="weather-temp">{temperature}°C</p>}
+      <h4>
+        {new Date(time).toLocaleTimeString([], {
+          hour: "2-digit",
+          minute: "2-digit",
+        })}
+      </h4>
+      <p>
+        {weather?.icon} {weather?.text}
+      </p>
+      <p>🌡 {Math.round(weather.temperature)}°C</p>
+      <p>💧 {weather.humidity}%</p>
     </div>
   );
 }
-
