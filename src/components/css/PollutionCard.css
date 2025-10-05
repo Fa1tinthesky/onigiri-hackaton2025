@@ -14,11 +14,11 @@
   border-radius: 16px;
   color: #fff;
   border-radius: 12px;
-  padding: 1rem 2rem;
+  padding: .8rem 1rem !important;
   text-align: center;
 
   flex-shrink: 0;
-  width: 7.5rem;
+  width: 10rem;
   padding: .5rem;
   min-height: 6rem;
   box-shadow: 0 4px 10px rgba(0, 0, 0, 0.3);

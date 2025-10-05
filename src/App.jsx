@@ -8,10 +8,11 @@ import WeatherPanel from "./components/WeatherPanel";
 // import { getUserLocation } from "./components/getUserLocation";
 import "./App.css";
 import { useTempo } from "./hooks/useTempo";
+import LoadingOverlay from "./components/LoadingOverlay";
 
 function App() {
   // const { coords, getCurrent, startWatch, stopWatch, loadingUserLocation, errorUserLocation } = getUserLocation();
-  const [userLocation, setUserLocation] = useState(null);
+  const [fullLoading, setFullLoading] = useState(true);
   const [lat, setLat] = useState(null);
   const [lon, setLon] = useState(null);
   const { coords, coordsError, CoordsLoading } = useUserLocation();
@@ -39,6 +40,10 @@ function App() {
     console.log(lon, lat, data);
   };
 
+  const handleLoading = (loading) => {
+    setFullLoading(loading);
+  };
+
   const toggleLayer = (key) => {
     console.log({ ...layers, [key]: !layers[key] });
     setLayers({ ...layers, [key]: !layers[key] });
@@ -46,7 +51,9 @@ function App() {
 
   return (
     <div className="map-container">
-      <CesiumMap coords={coords} layers={layers} handler={handleMapClick} />
+      {loading ? <LoadingOverlay/>: ""}
+
+      <CesiumMap handleLoading={handleLoading} coords={coords} layers={layers} handler={handleMapClick} />
       <div className="floating-panels">
         <div className="top-right-panel">
           <Layers layers={layers} toggleLayer={toggleLayer} />
