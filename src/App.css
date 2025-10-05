@@ -15,7 +15,7 @@
 }
 
 .top-left, .bottom-left{
-  border: #61dafbaa 2px solid;
+  /* border: #61dafbaa 2px solid; */
   display: flex;
   justify-content: center;
   align-items: center;
@@ -41,8 +41,8 @@
   align-items: center;
   position: absolute;
   top: 0;
-  width: 35%;
-  height: 20vh;
+  width: 25%;
+  height: 18vh;
 }
 
 
@@ -87,11 +87,11 @@
 
 .floating-panels > div {
   position: absolute;
-  background: rgba(20, 30, 30, 0.75);
+  /* background: rgba(20, 30, 30, 0.75); */
   color: #fff;
   backdrop-filter: blur(10px);
   border-radius: 12px;
-  padding: 12px 16px;
+  padding: 1rem 2rem;
   font-family: 'Inter', sans-serif;
   pointer-events: auto; /* Important: still allows map interaction outside */
 }
@@ -118,25 +118,12 @@
 .bottom-panel {
     width: 100%;
     bottom: 10px;
+    
     right: 10px;
 
     background-color: transparent;
     background: none !important;
     backdrop-filter: none !important;
-}
-
-
-
-.pollution-panel {
-  display: flex;
-  flex-direction: column;
-  border-left: 5px solid #4CAF50;
-  padding-left: 10px;
-  font-size: 14px;
-}
-.pollution-panel h3 {
-  margin: 0 0 4px 0;
-  color: #ffb84d;
 }
 
 
@@ -161,5 +148,14 @@
 
 .read-the-docs {
   color: #888;
+}
+
+.cesium-viewer-zoomContainer {
+  right: 15px !important;
+  top: 80px !important;
+}
+
+.compass {
+    margin-top: 15px !important;
 }
 
