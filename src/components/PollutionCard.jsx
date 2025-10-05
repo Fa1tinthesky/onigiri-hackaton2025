@@ -2,26 +2,30 @@ import "./css/PollutionCard.css";
 
 const formatTime = (timeValue) => {
   if (!timeValue) return "N/A";
-  
+ 
   // Remove the trailing 'Z' if there's already a timezone offset
   const cleanedTime = timeValue.replace(/(\+\d{2}:\d{2})Z$/, '$1');
-  
+ 
   const date = new Date(cleanedTime);
-  
+ 
   if (isNaN(date.getTime())) {
     return "Invalid Date";
   }
-  
+ 
   return date.toLocaleTimeString([], {
     hour: "2-digit",
     minute: "2-digit",
   });
 };
 
-
 export default function PollutionCard({ pollution, time }) {
   if (!pollution) return null;
-
+  
+  // Check if time is in the future
+  const date = new Date(time.replace('Z', ''));
+  date.setHours(date.getHours() + 5); // Convert to Tajikistan time
+  if (date < new Date()) return null; // Don't render if time has passed
+  
   // ---- AQI conversion (US EPA standard) ----
   function calcAQI_PM25(pm25) {
     if (pm25 == null) return null;
@@ -33,14 +37,12 @@ export default function PollutionCard({ pollution, time }) {
       { cLow: 150.5, cHigh: 250.4, iLow: 201, iHigh: 300 },
       { cLow: 250.5, cHigh: 500.4, iLow: 301, iHigh: 500 },
     ];
-
     const bp = breakpoints.find((b) => pm25 >= b.cLow && pm25 <= b.cHigh);
     if (!bp) return 500;
     return Math.round(
       ((bp.iHigh - bp.iLow) / (bp.cHigh - bp.cLow)) * (pm25 - bp.cLow) + bp.iLow
     );
   }
-
   function calcAQI_NO2(no2) {
     if (no2 == null) return null;
     // µg/m³ conversion (approximate)
@@ -53,75 +55,61 @@ export default function PollutionCard({ pollution, time }) {
       { cLow: 1250, cHigh: 2049, iLow: 301, iHigh: 400 },
       { cLow: 2050, cHigh: 4049, iLow: 401, iHigh: 500 },
     ];
-
     const bp = breakpoints.find((b) => no2 >= b.cLow && no2 <= b.cHigh);
     if (!bp) return 500;
     return Math.round(
       ((bp.iHigh - bp.iLow) / (bp.cHigh - bp.cLow)) * (no2 - bp.cLow) + bp.iLow
     );
   }
-
   // ---- Determine what to use ----
   const aqi_pm25 = pollution.aqi_pm25 ?? calcAQI_PM25(pollution.pm25);
   const aqi_no2 = pollution.aqi_no2 ?? calcAQI_NO2(pollution.no2);
   const aqi = aqi_pm25 || aqi_no2 || null;
-
   // ---- Get descriptive level ----
   function getAQILevel(aqi) {
     if (aqi == null)
       return { level: "N/A", msg: "No readings... breathe at your own risk 🌫" };
-
     if (aqi <= 25)
       return {
         level: "Pristine",
         msg: "Air so pure it could kiss your lungs 💨",
       };
-
     if (aqi <= 50)
       return {
         level: "Decent",
-        msg: "Still clean, but the purity’s fading — enjoy it while it lasts.",
+        msg: "Still clean, but the purity's fading — enjoy it while it lasts.",
       };
-
     if (aqi <= 75)
       return {
         level: "Mildly Polluted",
         msg: "The invisible dust has entered the chat — sensitive folks, tread easy.",
       };
-
     if (aqi <= 100)
       return {
         level: "Noticeably Polluted",
         msg: "You can almost taste the smog now. Maybe skip that jog, champ.",
       };
-
     if (aqi <= 150)
       return {
         level: "Unhealthy for Sensitive Groups",
         msg: "The air stings a bit — kids, elders, and anyone fragile, stay in.",
       };
-
     if (aqi <= 200)
       return {
         level: "Unhealthy",
         msg: "Every breath now costs you a few brain cells. Mask up or stay home.",
       };
-
     if (aqi <= 300)
       return {
         level: "Very Unhealthy",
-        msg: "The sky looks fine, but it’s lying — this air bites deep. Stay inside.",
+        msg: "The sky looks fine, but it's lying — this air bites deep. Stay inside.",
       };
-
     return {
       level: "Hazardous",
       msg: "Apocalyptic. Windows closed, filters on, and maybe say your prayers 🫠",
     };
-
   }
-
   const info = getAQILevel(aqi);
-
   // ---- UI ----
   return (
     <div className="pollution-card">
