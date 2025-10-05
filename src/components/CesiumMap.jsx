@@ -281,7 +281,7 @@ function addHoverHandler(viewer, handler) {
   }, Cesium.ScreenSpaceEventType.MOUSE_MOVE);
 }
 
-const CesiumViewer = ({ coords, handler, layers }) => {
+const CesiumViewer = ({ handleLoading, coords, handler, layers }) => {
   const cesiumContainer = useRef(null);
   const providers = useRef(null);
   const [pin, setPin] = useState(null);
@@ -289,7 +289,7 @@ const CesiumViewer = ({ coords, handler, layers }) => {
   const isInitializing = useRef(false);
 
   const viewer = useRef(null);
-  const [isLoading, setIsLoading] = useState(true);
+  const [isLoading, setIsLoading] = useState(true)
 
   useEffect(() => {
     const initializeCesium = async () => {
@@ -375,11 +375,13 @@ const CesiumViewer = ({ coords, handler, layers }) => {
 
 
           setIsLoading(false);
+          handleLoading(false);
           console.log("CONFIG DONE");
         } catch (error) {
           console.error("Error initializing Cesium:", error);
 
           setIsLoading(false);
+          handleLoading(false);
         }
       }
     };
@@ -432,23 +434,7 @@ const CesiumViewer = ({ coords, handler, layers }) => {
 
   return (
     <div style={{ position: "relative", width: "100%", height: "100vh" }}>
-      {isLoading && (
-        <div
-          style={{
-            position: "absolute",
-            top: "50%",
-            left: "50%",
-            transform: "translate(-50%, -50%)",
-            zIndex: 1000,
-            background: "rgba(0,0,0,0.7)",
-            color: "white",
-            padding: "10px 20px",
-            borderRadius: "5px",
-          }}
-        >
-          Loading Cesium...
-        </div>
-      )}
+
       <div
         ref={cesiumContainer}
         className="cesium-container"
