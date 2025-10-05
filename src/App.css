@@ -35,7 +35,8 @@
 }
 
 .top-left, .top-right{
-  border: #61dafbaa 2px solid;
+  /* border: #61dafbaa 2px solid; */
+  /* backdrop-filter: (0 0 2em #646cffaa); */
   display: flex;
   justify-content: center;
   align-items: center;

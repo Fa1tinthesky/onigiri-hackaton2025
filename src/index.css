@@ -97,3 +97,7 @@ button:focus-visible {
 .cesium-viewer-toolbar {
     right: 150px;
 }
+
+.cesium-home-button {
+    background-color: #303336;
+}

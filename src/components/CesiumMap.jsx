@@ -325,9 +325,6 @@ const CesiumViewer = ({ handler, layers }) => {
       ) {
         isInitializing.current = true;
         try {
-          // Better performance
-          // const terrainProvider = new Cesium.EllipsoidTerrainProvider();
-
           console.log("Here at least");
           const worldTerrain = await Cesium.createWorldTerrainAsync();
           Cesium.RequestScheduler.maximumRequestsPerServer = 3;
@@ -345,7 +342,7 @@ const CesiumViewer = ({ handler, layers }) => {
             timeline: false,
             fullscreenButton: false,
             geocoder: true,
-            homeButton: false,
+            homeButton: true,
             infoBox: false,
             selectionIndicator: false,
           });
@@ -362,13 +359,29 @@ const CesiumViewer = ({ handler, layers }) => {
 
           // await loadBoundaries(viewer.current);
           // const na_bounds = { west: -130, south: 20, east: -60, north: 50 };
-
           providers.current = await loadTiles(viewer.current);
             new CesiumNavigation(viewer.current, {
                 enableCompass: true,
                 enableZoomControls: true,
-                enableDistanceLegend: false
+                enableDistanceLegend: false,
+                defaultResetView: Cesium.Rectangle.fromDegrees(-120.0, 20.0, -60.0, 60.0)
             })
+
+            viewer.current.homeButton.viewModel.command.beforeExecute.addEventListener((commandInfo) => {
+                commandInfo.cancel = true; // stop Cesium's default handler
+
+                // Reset BOTH camera position and orientation
+                viewer.current.camera.flyTo({
+                    destination: Cesium.Cartesian3.fromDegrees(-95.0, 40.0, 25000000.0), // your default location
+                    orientation: {
+                        heading: Cesium.Math.toRadians(0.0),
+                        pitch: Cesium.Math.toRadians(-90.0), // look straight down
+                        roll: 0.0,
+                    },
+                    duration: 1.5,
+                });
+            });
+
 
 
             eventHandler.current = momyHandler(
@@ -410,6 +423,9 @@ const CesiumViewer = ({ handler, layers }) => {
     };
   }, []);
 
+    // aqi
+    // pm2_5 || pm_10 || no2
+    //
     useEffect(() => {
         if (providers.current) {
             console.info("Layers:", layers, providers.current);
@@ -417,29 +433,8 @@ const CesiumViewer = ({ handler, layers }) => {
             const na_provider = providers.current["North America"];
 
             Object.entries(layers).forEach(([key, value]) => {
-                if (value) {
-                    if (key === "Tajikistan") {
-                        console.log(`Turn ON layer for ${key}`);
-                        tj_provider.show = true;
-                    }
-
-                    if (key === "North America") {
-                        console.log(`Turn ON layer for ${key}`);
-                        na_provider.show = true;
-                    }
-
-                } else {
-                    if (key === "Tajikistan") {
-                        console.log(`Turn OFF layer for ${key}`);
-                        tj_provider.show = false;
-                    }
-
-                    if (key === "North America") {
-                        console.log(`Turn OFF layer for ${key}`);
-                        na_provider.show = false;
-                    }
-
-                }
+                const provider = providers.current[key];
+                if (provider) provider.show = value;
             });
         }
     }, [layers])
