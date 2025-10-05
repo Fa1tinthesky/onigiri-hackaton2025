@@ -6,14 +6,13 @@
 
     overflow-x: auto;
     scrollbar-width: thin; /* for Firefox */
-
     flex-wrap: nowrap;
     background-color: transparent;
     background: none;
     backdrop-filter: none;
 
     border: none;
-    gap: 4px;
+    gap: 1rem;
 backdrop-filter: (0 0 2em #646cffaa);
     font-size: 14px;
 }

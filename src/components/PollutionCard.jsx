@@ -1,3 +1,5 @@
+import "./css/PollutionCard.css";
+
 export default function PollutionCard({ data }) {
     if (!data) return null;
 
@@ -25,19 +27,17 @@ export default function PollutionCard({ data }) {
         else               { return { aqi: "Hazardous", suggestion: "Stay indoors, use air purifiers if available. All outdoor activities should be avoided. Emergency measures may be needed."} }
     }
 
-  /* return (
-    <div
-      className="pollution-panel"
-    >
-      <h3>💨 Air Quality</h3>
-      <p>
-        <b>AQI:</b> {data.aqi}
-      </p>
-      <p>
-        <b>Status:</b> {get_aqi_level(data.aqi)}
-      </p>
+  return (
+    <div className="pollution-card">
+      <h4>
+        {new Date(data.time).toLocaleTimeString([], {
+          hour: "2-digit",
+          minute: "2-digit",
+        })}
+      </h4>
+      <p>blaaaaaaa</p>
     </div>
-  ); */
+  );
 
         return <></>
 }

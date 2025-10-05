@@ -80,7 +80,7 @@ function App() {
         </div>
 
         <div className="top-left">
-          <PollutionPanel data={{aqi: 520}} />
+              <PollutionPanel data={{aqi: 520}} />
         </div>
 
           <div className="bottom-panel">
