@@ -1,7 +1,8 @@
-openmeteo-requests
-requests-cache
-retry-requests
+functions-framework==3.*
+flask
 numpy
 pandas
-flask
-functions-framework
+requests
+requests-cache
+retry-requests
+openmeteo-requests
