@@ -49,30 +49,56 @@ export default function PollutionCard({ pollution, time }) {
 
   // ---- Get descriptive level ----
   function getAQILevel(aqi) {
-    if (aqi == null) return { level: "N/A", msg: "No data available." };
+    if (aqi == null)
+      return { level: "N/A", msg: "No readings... breathe at your own risk 🌫" };
+
+    if (aqi <= 25)
+      return {
+        level: "Pristine",
+        msg: "Air so pure it could kiss your lungs 💨",
+      };
+
     if (aqi <= 50)
-      return { level: "Good", msg: "Air is clean. Go touch some grass 🌿" };
+      return {
+        level: "Decent",
+        msg: "Still clean, but the purity’s fading — enjoy it while it lasts.",
+      };
+
+    if (aqi <= 75)
+      return {
+        level: "Mildly Polluted",
+        msg: "The invisible dust has entered the chat — sensitive folks, tread easy.",
+      };
+
     if (aqi <= 100)
-      return { level: "Moderate", msg: "Decent air — still fine for a walk." };
+      return {
+        level: "Noticeably Polluted",
+        msg: "You can almost taste the smog now. Maybe skip that jog, champ.",
+      };
+
     if (aqi <= 150)
       return {
         level: "Unhealthy for Sensitive Groups",
-        msg: "Children, elderly, or those with heart/lung issues should limit outdoor activity.",
+        msg: "The air stings a bit — kids, elders, and anyone fragile, stay in.",
       };
+
     if (aqi <= 200)
       return {
         level: "Unhealthy",
-        msg: "Air quality is poor. Avoid heavy exercise outdoors.",
+        msg: "Every breath now costs you a few brain cells. Mask up or stay home.",
       };
+
     if (aqi <= 300)
       return {
         level: "Very Unhealthy",
-        msg: "Everyone should limit outdoor activity. Stay indoors if possible.",
+        msg: "The sky looks fine, but it’s lying — this air bites deep. Stay inside.",
       };
+
     return {
       level: "Hazardous",
-      msg: "Stay indoors. Seriously. This is toxic air.",
+      msg: "Apocalyptic. Windows closed, filters on, and maybe say your prayers 🫠",
     };
+
   }
 
   const info = getAQILevel(aqi);
