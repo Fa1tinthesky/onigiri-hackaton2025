@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import useUserLocation from "./hooks/useUserLocation";
 import CesiumMap from "./components/CesiumMap";
 import Layers from "./components/Layers";
 import PollutionPanel from "./components/PollutionPanel";
@@ -12,16 +13,23 @@ import useTempo from "./hooks/useTempo";
 function App() {
       // const { coords, getCurrent, startWatch, stopWatch, loadingUserLocation, errorUserLocation } = getUserLocation();
   const [userLocation, setUserLocation] = useState(null);
-
   const [lat, setLat] = useState(null);
   const [lon, setLon] = useState(null);
-
+  
+  const { coords, coordsError, CoordsLoading } = useUserLocation();
   const {data, loading, error} = useMeteo(lon, lat);
   const {dataTempo, loadingTempo, errorTempo} = useTempo(lon, lat);
   const [layers, setLayers] = useState({
     "North America": true,
     "Tajikistan": true,
   });
+
+  useEffect(() => {
+    if (coords) {
+      console.log("✅ My location:", coords.latitude, coords.longitude);
+      // You can setLat/SetLon here if you want
+    }
+  }, [coords]);
 
     /* useEffect(() => {
         if ("geolocation" in navigator) {
