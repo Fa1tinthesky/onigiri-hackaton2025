@@ -11,30 +11,6 @@ import PollutionPanel from "./PollutionPanel.jsx";
 Cesium.Ion.defaultAccessToken = import.meta.env.VITE_CESIUM_API;
 
 /**
- * @param {Cesium.Viewer} viewer
- * @param {HTMLCanvasElement} canvas
- * @param {Object} bounds*/
-function addHeatmap(viewer, canvas, bounds) {
-  const img = new Image();
-
-  img.onload = () => {
-    const imageryProvider = new Cesium.SingleTileImageryProvider({
-      url: img.src,
-      rectangle: Cesium.Rectangle.fromDegrees(
-        bounds.west,
-        bounds.south,
-        bounds.east,
-        bounds.north
-      ),
-    });
-
-    viewer.imageryLayers.addImageryProvider(imageryProvider);
-  };
-
-  img.src = canvas.toDataURL();
-}
-
-/**
  * @function
  * @param {Cesium.Viewer} viewer - will be modified to load boundaries.
  * @throws {AssertionError} When input is not a correct Cesium viewer.
@@ -196,7 +172,7 @@ function addClickHandler(viewer, handler, onClick) {
   // const { coords, loading, error, getCurrent, startWatch, stopWatch } = getUserLocation();
   let pin = null;
   const pin_config = {
-    name: "pin",
+    name: "chosen-location",
     color: Cesium.Color.RED,
   };
 
@@ -212,18 +188,12 @@ function addClickHandler(viewer, handler, onClick) {
       const height = cartographic.height;
 
       console.log(longitude, latitude);
-
-      /* viewer.camera.flyTo({
-            destination: Cesium.Cartesian3.fromDegrees(longitude, latitude, 170_000), // lon, lat, height (meters)
-            duration: 2.0 // seconds
-        }); */
-
       if (onClick) onClick(longitude, latitude);
 
       // Manage the pin on map
       if (pin) viewer.entities.remove(pin);
       pin = viewer.entities.add({
-        id: "user-location",
+        id: "chosen-location",
         name: pin_config.name,
         position: Cesium.Cartesian3.fromDegrees(longitude, latitude),
         point: {
@@ -240,18 +210,28 @@ function addClickHandler(viewer, handler, onClick) {
   }, Cesium.ScreenSpaceEventType.LEFT_CLICK);
 }
 
-function flyToAndPin(viewer, latitude, longitude, options = {}) {
-  const { height = 70_000, pinName = "You" } = options;
+function setPinAndMoveTo(lat, lon, viewer) {
+  if (!viewer) {
+    console.log("NOPE, VIEWER ISNT LOADED YET");
+    return;
+  }
+  const pinName = "You";
 
-  // fly camera
+  const longitude = lon;
+  const latitude = lat;
+  const height = 200_000;
+
+  console.info("HERE:", longitude, latitude);
+
   viewer.camera.flyTo({
     destination: Cesium.Cartesian3.fromDegrees(longitude, latitude, height),
     duration: 2,
   });
 
   const existing = viewer.entities.getById("user-location");
-  if (existing) viewer.entities.remove(existing);
 
+  console.info("EXISTING:", existing);
+  if (existing) viewer.entities.remove(existing);
   viewer.entities.add({
     id: "user-location",
     name: pinName,
@@ -259,43 +239,6 @@ function flyToAndPin(viewer, latitude, longitude, options = {}) {
     point: {
       pixelSize: 12,
       color: Cesium.Color.CYAN,
-      outlineColor: Cesium.Color.WHITE,
-      outlineWidth: 2,
-      heightReference: Cesium.HeightReference.CLAMP_TO_GROUND,
-    },
-    label: {
-      text: pinName,
-      font: "16px sans-serif",
-      verticalOrigin: Cesium.VerticalOrigin.BOTTOM,
-      pixelOffset: new Cesium.Cartesian2(0, -14),
-    },
-  });
-}
-
-function setPinAndMoveTo(lat, lon, viewer) {
-  const pinName = "You";
-
-  const longitude = lon;
-  const latitude = lat;
-  const height = 200_000;
-
-  console.log("HERE:", longitude, latitude);
-
-  viewer.camera.flyTo({
-    destination: Cesium.Cartesian3.fromDegrees(longitude, latitude, height),
-    duration: 2,
-  });
-
-  const existing = viewer.entities.getById("user-location");
-  if (existing) viewer.entities.remove(existing);
-
-  viewer.entities.add({
-    id: "user-location",
-    name: pinName,
-    position: Cesium.Cartesian3.fromDegrees(longitude, latitude, 0),
-    point: {
-      pixelSize: 12,
-      color: Cesium.Color.RED,
       outlineColor: Cesium.Color.WHITE,
       outlineWidth: 2,
       heightReference: Cesium.HeightReference.CLAMP_TO_GROUND,
@@ -430,9 +373,6 @@ const CesiumViewer = ({ coords, handler, layers }) => {
             [handler, null]
           );
 
-          if (coords) {
-            setPinAndMoveTo(coords.latitude, coords.longitude, viewer.current);
-          }
 
           setIsLoading(false);
           console.log("CONFIG DONE");
@@ -482,6 +422,13 @@ const CesiumViewer = ({ coords, handler, layers }) => {
       });
     }
   }, [layers]);
+
+  useEffect(() => {
+    if (coords) {
+      console.info("PRINTING COORDS:", coords);
+      setPinAndMoveTo(coords.latitude, coords.longitude, viewer.current);
+    }
+  }, [coords]); 
 
   return (
     <div style={{ position: "relative", width: "100%", height: "100vh" }}>

@@ -1,5 +1,24 @@
 import "./css/PollutionCard.css";
 
+const formatTime = (timeValue) => {
+  if (!timeValue) return "N/A";
+  
+  // Remove the trailing 'Z' if there's already a timezone offset
+  const cleanedTime = timeValue.replace(/(\+\d{2}:\d{2})Z$/, '$1');
+  
+  const date = new Date(cleanedTime);
+  
+  if (isNaN(date.getTime())) {
+    return "Invalid Date";
+  }
+  
+  return date.toLocaleTimeString([], {
+    hour: "2-digit",
+    minute: "2-digit",
+  });
+};
+
+
 export default function PollutionCard({ pollution, time }) {
   if (!pollution) return null;
 
@@ -21,7 +40,7 @@ export default function PollutionCard({ pollution, time }) {
       ((bp.iHigh - bp.iLow) / (bp.cHigh - bp.cLow)) * (pm25 - bp.cLow) + bp.iLow
     );
   }
-
+  console.log(formatTime(time))
   function calcAQI_NO2(no2) {
     if (no2 == null) return null;
     // µg/m³ conversion (approximate)
@@ -81,10 +100,7 @@ export default function PollutionCard({ pollution, time }) {
   return (
     <div className="pollution-card">
       <h4>
-        {new Date(time).toLocaleTimeString([], {
-          hour: "2-digit",
-          minute: "2-digit",
-        })}
+        {formatTime(time)}
       </h4>
       <p>
         AQI: <strong>{Math.round(aqi)}</strong> ({info.level})
