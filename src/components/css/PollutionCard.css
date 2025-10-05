@@ -1,4 +1,4 @@
-.weather-card {
+.pollution-card {
   background: linear-gradient(145deg, #1e2538, #2b3550);
 
   display: flex;
@@ -8,45 +8,24 @@
 
   /* Frosted glass effect */
   background: rgba(25, 25, 36, 0.5); /* semi-transparent white */
-  backdrop-filter: blur(10px) saturate(160%) contrast(120%);
+  backdrop-filter: blur(10px) ;
   -webkit-backdrop-filter: blur(10px) saturate(160%) contrast(120%);
   
   border-radius: 16px;
   color: #fff;
   border-radius: 12px;
-  padding: 12px 16px;
+  padding: 1rem 2rem;
   text-align: center;
+
+  flex-shrink: 0;
   width: 7.5rem;
-    flex-shrink: 0;
-  /* min-height: 7rem;
-  max-height: 10rem; */
     height: 6rem;
   box-shadow: 0 4px 10px rgba(0, 0, 0, 0.3);
   transition: all 0.2s ease;
   cursor: pointer;
 }
 
-.weather-card:hover {
+.pollution-card:hover {
   transform: translateY(-5px);
   box-shadow: 0 6px 16px rgba(0, 0, 0, 0.4);
 }
-
-.weather-time {
-  font-size: 1.1rem;
-  font-weight: 600;
-  margin-bottom: 6px;
-  color: #aad4ff;
-}
-
-.weather-info {
-  font-size: 0.95rem;
-  margin-bottom: 4px;
-  opacity: 0.9;
-}
-
-.weather-temp {
-  font-size: 1.2rem;
-  font-weight: 500;
-  color: #ffd369;
-}
-

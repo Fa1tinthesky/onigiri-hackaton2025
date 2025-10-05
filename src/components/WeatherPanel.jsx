@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import WeatherCard from "./WeatherCard";
+import PollutionCard from "./PollutionCard";
 import "./css/WeatherPanel.css";
 
 export default function WeatherPanel({ data }) {
@@ -162,9 +163,9 @@ export default function WeatherPanel({ data }) {
           weather={item.weather}
           key={index}
           time={item.time}
-
         />
       ))}
+          <PollutionCard data={{}}/>
     </div>
   );
 }
